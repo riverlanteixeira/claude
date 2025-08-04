@@ -138,6 +138,15 @@
             color: #888;
         }
 
+        #location-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(231, 38, 38, 0.2);
+            border-radius: 5px;
+            font-size: 0.9em;
+            border: 1px solid #e72626;
+        }
+
         #victory-screen h1 {
             font-size: 2.5em;
             color: #e72626;
@@ -193,6 +202,10 @@
                 <li data-item="will">Will Byers</li>
                 <li data-item="bike">Bicicleta</li>
             </ul>
+            <div id="location-info">
+                <strong>📍 Localização:</strong><br>
+                <span id="location-status">Aguardando GPS...</span>
+            </div>
         </div>
 
         <div id="victory-screen" class="ui-screen ui-element hidden">
@@ -217,9 +230,20 @@
             const objectsToPlace = ['will', 'bike'];
             let currentObjectIndex = 0;
             let currentObjectPlaced = false;
-            let canPlace = true;
+            let canPlace = false; // Inicialmente false até chegar na localização
             let hitTestSource = null;
             let instructionText = null;
+            let geolocationWatchId = null;
+            let currentLocation = null;
+            let locationUnlocked = [false, false]; // Controla se cada localização foi desbloqueada
+
+            // Coordenadas dos objetos (latitude, longitude)
+            const objectLocations = [
+                { lat: -27.639679087813015, lng: -48.66762088480492, name: 'Will Byers' },
+                { lat: -27.639926798254773, lng: -48.66778986396444, name: 'Bicicleta' }
+            ];
+
+            const PROXIMITY_RADIUS = 10; // 10 metros
 
             function simulateLoading() {
                 let progress = 0;
@@ -255,11 +279,14 @@
             function initGame() {
                 instructionText = document.createElement('p');
                 instructionText.id = 'instruction-text';
-                instructionText.innerText = "Mova o celular para encontrar Will Byers...";
+                instructionText.innerText = "Iniciando geolocalização...";
                 gameUi.appendChild(instructionText);
 
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
+
+                // Inicializar geolocalização
+                setupGeolocation();
 
                 // Inicializar hit-test source quando a sessão XR estiver ativa
                 const renderer = sceneEl.renderer;
@@ -270,11 +297,113 @@
                 }
             }
 
+            function setupGeolocation() {
+                if (!navigator.geolocation) {
+                    instructionText.innerText = "Geolocalização não suportada neste dispositivo.";
+                    return;
+                }
+
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 1000
+                };
+
+                // Obter posição inicial
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        checkProximityToLocations();
+                    },
+                    (error) => {
+                        console.error('Erro ao obter localização:', error);
+                        instructionText.innerText = "Erro ao acessar localização. Verifique as permissões.";
+                    },
+                    options
+                );
+
+                // Monitorar mudanças de posição
+                geolocationWatchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        currentLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        checkProximityToLocations();
+                    },
+                    (error) => {
+                        console.error('Erro no monitoramento de localização:', error);
+                    },
+                    options
+                );
+            }
+
+            function calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371000; // Raio da Terra em metros
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c; // Distância em metros
+            }
+
+            function vibrateDevice() {
+                if (navigator.vibrate) {
+                    navigator.vibrate(500); // Vibrar por 500ms
+                }
+            }
+
+            function checkProximityToLocations() {
+                if (!currentLocation) return;
+
+                const currentObjectLocation = objectLocations[currentObjectIndex];
+                if (!currentObjectLocation) return;
+
+                const distance = calculateDistance(
+                    currentLocation.lat, currentLocation.lng,
+                    currentObjectLocation.lat, currentObjectLocation.lng
+                );
+
+                console.log(`Distância para ${currentObjectLocation.name}: ${distance.toFixed(1)}m`);
+
+                // Atualizar indicador de localização
+                const locationStatus = document.getElementById('location-status');
+                const distanceText = distance > 1000 ?
+                    `${(distance / 1000).toFixed(1)}km` :
+                    `${Math.round(distance)}m`;
+
+                if (locationUnlocked[currentObjectIndex]) {
+                    locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
+                } else if (distance <= PROXIMITY_RADIUS) {
+                    // Jogador chegou perto o suficiente!
+                    locationUnlocked[currentObjectIndex] = true;
+                    canPlace = true;
+
+                    // Vibrar o dispositivo
+                    vibrateDevice();
+
+                    // Atualizar instruções e status
+                    instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Procure uma superfície para encontrá-lo.`;
+                    locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
+
+                    console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
+                } else {
+                    // Mostrar distância atual
+                    instructionText.innerText = `Vá até a localização de ${currentObjectLocation.name}`;
+                    locationStatus.innerHTML = `🎯 ${currentObjectLocation.name}: ${distanceText}`;
+                }
+            }
+
             function setupTouchInteraction() {
                 // Adicionar listener para toque na tela
                 sceneEl.addEventListener('touchstart', handleTouch);
                 sceneEl.addEventListener('click', handleTouch);
-                
+
                 // Adicionar também um listener para toque em qualquer lugar da tela como fallback
                 document.addEventListener('touchstart', handleScreenTouch);
                 document.addEventListener('click', handleScreenTouch);
@@ -285,7 +414,7 @@
                 if (currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
                     const currentObjectId = objectsToPlace[currentObjectIndex];
                     const currentObject = document.getElementById(currentObjectId);
-                    
+
                     if (currentObject && currentObject.getAttribute('visible') === true) {
                         event.preventDefault();
                         collectItem(currentObjectId);
@@ -313,7 +442,7 @@
                 // Obter canvas da cena
                 const canvas = sceneEl.canvas || sceneEl.renderer.domElement;
                 const rect = canvas.getBoundingClientRect();
-                
+
                 const mouse = {
                     x: ((clientX - rect.left) / rect.width) * 2 - 1,
                     y: -((clientY - rect.top) / rect.height) * 2 + 1
@@ -323,16 +452,16 @@
                 try {
                     const raycaster = new THREE.Raycaster();
                     const camera = sceneEl.camera;
-                    
+
                     raycaster.setFromCamera(mouse, camera);
 
                     // Verificar se o raio intersecta com o objeto atual
                     const currentObjectId = objectsToPlace[currentObjectIndex];
                     const currentObject = document.getElementById(currentObjectId);
-                    
+
                     if (currentObject && currentObject.getAttribute('visible') === true) {
                         const intersects = raycaster.intersectObject(currentObject.object3D, true);
-                        
+
                         if (intersects.length > 0) {
                             // Objeto foi tocado!
                             console.log('Objeto tocado:', currentObjectId);
@@ -382,8 +511,8 @@
                             reticle.object3D.scale
                         );
 
-                        // Colocar objeto apenas se não há objeto atual colocado e ainda há objetos para colocar
-                        if (canPlace && !currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
+                        // Colocar objeto apenas se a localização foi desbloqueada e não há objeto atual colocado
+                        if (canPlace && !currentObjectPlaced && currentObjectIndex < objectsToPlace.length && locationUnlocked[currentObjectIndex]) {
                             placeObject(pose);
                         }
                     }
@@ -444,11 +573,14 @@
                 if (currentObjectIndex < objectsToPlace.length) {
                     // Ainda há objetos para colocar
                     const nextObjectName = objectsToPlace[currentObjectIndex] === 'will' ? 'Will Byers' : 'Bicicleta';
-                    instructionText.innerText = `Ótimo! Agora procure uma superfície para encontrar: ${nextObjectName}`;
+                    instructionText.innerText = `Ótimo! Agora vá até a localização de ${nextObjectName}`;
 
-                    // Permitir colocar o próximo objeto após um breve delay
+                    // Resetar flags para o próximo objeto
+                    canPlace = false;
+
+                    // Verificar se já está perto da próxima localização
                     setTimeout(() => {
-                        canPlace = true;
+                        checkProximityToLocations();
                     }, 1500);
                 } else {
                     // Todos os objetos foram coletados
@@ -457,6 +589,11 @@
             }
 
             function showVictoryScreen() {
+                // Parar monitoramento de geolocalização
+                if (geolocationWatchId) {
+                    navigator.geolocation.clearWatch(geolocationWatchId);
+                }
+
                 gameUi.style.display = 'none';
                 victoryScreen.classList.remove('hidden');
             }
