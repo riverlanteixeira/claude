@@ -138,6 +138,34 @@
             border: 1px solid #e72626;
         }
 
+        .collect-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 15;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+            }
+        }
+
         #victory-screen h1 {
             font-size: 2.5em;
             color: #e72626;
@@ -395,8 +423,8 @@
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
-                { lat: -27.63990544473344, lng: -48.66787969102447, name: 'Will Byers' },
-                { lat: -27.63990544473344, lng: -48.66787969102447, name: 'Bicicleta' }
+                { lat: -27.631023752366087, lng: -48.679659953013626, name: 'Will Byers' },
+                { lat: -27.63079087374055, lng: -48.67961837877597, name: 'Bicicleta' }
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
@@ -443,17 +471,23 @@
 
                 startCallTimer();
 
-                dustinAudio.play().then(() => {
-                    console.log('Áudio iniciado com sucesso');
-                }).catch(error => {
-                    console.error('Erro ao tocar áudio:', error);
-                    setTimeout(endCall, 3000);
-                });
+                if (!audioPlayed) {
+                    audioPlayed = true;
+                    dustinAudio.play().then(() => {
+                        console.log('Áudio iniciado com sucesso');
+                    }).catch(error => {
+                        console.error('Erro ao tocar áudio:', error);
+                        setTimeout(endCall, 3000);
+                    });
 
-                dustinAudio.addEventListener('ended', () => {
-                    console.log('Áudio terminou, encerrando ligação');
-                    endCall();
-                }, { once: true });
+                    dustinAudio.addEventListener('ended', () => {
+                        console.log('Áudio terminou, encerrando ligação');
+                        endCall();
+                    }, { once: true });
+                } else {
+                    // Se áudio já foi tocado, encerrar ligação imediatamente
+                    setTimeout(endCall, 1000);
+                }
             }
 
             function declineCall() {
@@ -537,15 +571,24 @@
                 console.log('Jogo inicializado com sucesso');
             }
 
+            let touchListenerAdded = false;
+            let audioPlayed = false;
+
             function setupTouchInteraction() {
-                document.addEventListener('touchstart', handleScreenTouch);
-                document.addEventListener('click', handleScreenTouch);
+                if (!touchListenerAdded) {
+                    document.addEventListener('touchstart', handleScreenTouch);
+                    document.addEventListener('click', handleScreenTouch);
+                    touchListenerAdded = true;
+                    console.log('Touch listeners adicionados');
+                }
             }
 
             function handleScreenTouch(event) {
-                if (currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
+                // Verificar se estamos no jogo e não na ligação
+                if (gameUi.style.display === 'block' && currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
                     const currentObjectId = objectsToPlace[currentObjectIndex];
                     event.preventDefault();
+                    event.stopPropagation();
                     console.log('Coletando item por toque:', currentObjectId);
                     collectItem(currentObjectId);
                 }
@@ -630,16 +673,35 @@
 
                 if (locationUnlocked[currentObjectIndex]) {
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
+                    if (!currentObjectPlaced) {
+                        instructionText.innerText = `${currentObjectLocation.name} está próximo! Toque na tela para coletá-lo.`;
+                        currentObjectPlaced = true;
+                    }
                 } else if (distance <= PROXIMITY_RADIUS) {
                     locationUnlocked[currentObjectIndex] = true;
                     canPlace = true;
+                    currentObjectPlaced = true;
 
                     vibrateDevice();
 
-                    instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Toque na tela para coletá-lo.`;
+                    instructionText.innerText = `🎉 ${currentObjectLocation.name} encontrado! Toque na tela para coletá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
 
-                    currentObjectPlaced = true;
+                    // Adicionar efeito visual de sucesso
+                    gameUi.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
+
+                    // Adicionar indicador de coleta
+                    const collectIndicator = document.createElement('div');
+                    collectIndicator.className = 'collect-indicator';
+                    collectIndicator.innerHTML = `📍 ${currentObjectLocation.name}<br>Toque na tela para coletar!`;
+                    document.body.appendChild(collectIndicator);
+
+                    setTimeout(() => {
+                        gameUi.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                        if (collectIndicator.parentNode) {
+                            collectIndicator.parentNode.removeChild(collectIndicator);
+                        }
+                    }, 5000);
 
                     console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
                 } else {
@@ -651,18 +713,33 @@
             function collectItem(id) {
                 if (collectibles[id]) return;
 
+                console.log(`Item coletado: ${id}`);
                 collectibles[id] = true;
                 foundCollectibles++;
 
                 const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
                 if (listItem) listItem.classList.add('found');
 
+                // Remover indicador de coleta se existir
+                const existingIndicator = document.querySelector('.collect-indicator');
+                if (existingIndicator) {
+                    existingIndicator.parentNode.removeChild(existingIndicator);
+                }
+
+                // Efeito visual de coleta
+                gameUi.style.backgroundColor = 'rgba(231, 38, 38, 0.8)';
+                vibrateDevice();
+
                 currentObjectIndex++;
                 currentObjectPlaced = false;
 
                 if (currentObjectIndex < objectsToPlace.length) {
                     const nextObjectName = objectsToPlace[currentObjectIndex] === 'will' ? 'Will Byers' : 'Bicicleta';
-                    instructionText.innerText = `Ótimo! Agora vá até a localização de ${nextObjectName}`;
+                    instructionText.innerText = `✅ ${id === 'will' ? 'Will Byers' : 'Bicicleta'} coletado! Agora vá até a localização de ${nextObjectName}`;
+
+                    setTimeout(() => {
+                        gameUi.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                    }, 2000);
 
                     canPlace = false;
 
@@ -670,7 +747,10 @@
                         checkProximityToLocations();
                     }, 1500);
                 } else {
-                    showVictoryScreen();
+                    instructionText.innerText = `🎉 Todos os itens coletados!`;
+                    setTimeout(() => {
+                        showVictoryScreen();
+                    }, 2000);
                 }
             }
 
