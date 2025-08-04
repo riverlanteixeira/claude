@@ -186,9 +186,9 @@
     </a-scene>
 
     <!-- Áudio da música tema -->
-    <audio id="theme-music" loop preload="auto" volume="0.7">
-        <source src="assets/audio/musica-tema.mp3" type="audio/mpeg">
-        Seu navegador não suporta o elemento de áudio.
+    <audio id="theme-music" loop preload="auto" volume="0.7" autoplay></audio>
+    <source src="assets/audio/musica-tema.mp3" type="audio/mpeg">
+    Seu navegador não suporta o elemento de áudio.
     </audio>
 
     <!-- UI Overlay -->
@@ -247,8 +247,8 @@
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
-                { lat: -27.639679087813015, lng: -48.66762088480492, name: 'Will Byers' },
-                { lat: -27.639926798254773, lng: -48.66778986396444, name: 'Bicicleta' }
+                { lat: -27.639772350563156, lng: -48.66772884371239, name: 'Will Byers' },
+                { lat: -27.63985432667278, lng: -48.66781266273992, name: 'Bicicleta' }
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
@@ -256,7 +256,7 @@
             function simulateLoading() {
                 // Tentar tocar a música tema
                 playThemeMusic();
-                
+
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 25;
@@ -273,17 +273,25 @@
             function playThemeMusic() {
                 // Configurar volume
                 themeMusic.volume = 0.7;
-                
-                // Tentar tocar a música automaticamente
-                themeMusic.play().then(() => {
-                    document.getElementById('music-info').style.display = 'block';
-                }).catch(error => {
-                    console.log('Autoplay bloqueado. A música tocará após interação do usuário.');
-                    document.getElementById('music-info').innerText = '🎵 Toque na tela para ativar a música';
-                    // Adicionar listener para tocar após primeira interação
-                    document.addEventListener('click', playMusicOnFirstClick, { once: true });
-                    document.addEventListener('touchstart', playMusicOnFirstClick, { once: true });
-                });
+
+                // Forçar início da música sem aguardar interação
+                const forcePlay = () => {
+                    themeMusic.play().then(() => {
+                        document.getElementById('music-info').style.display = 'block';
+                        document.getElementById('music-info').innerText = '🎵 Música tema tocando...';
+                    }).catch(error => {
+                        console.log('Tentativa de autoplay falhou, tentando novamente...');
+                        // Tentar novamente após um pequeno delay
+                        setTimeout(forcePlay, 100);
+                    });
+                };
+
+                // Iniciar imediatamente
+                forcePlay();
+
+                // Também tentar quando houver interação como backup
+                document.addEventListener('click', playMusicOnFirstClick, { once: true });
+                document.addEventListener('touchstart', playMusicOnFirstClick, { once: true });
             }
 
             function playMusicOnFirstClick() {
@@ -314,7 +322,7 @@
             enterButton.addEventListener('click', async () => {
                 // Parar a música tema quando o usuário iniciar o jogo
                 stopThemeMusic();
-                
+
                 try {
                     await sceneEl.enterAR();
                     loadingInfo.innerText = "Iniciando AR...";
@@ -592,7 +600,7 @@
                 );
 
                 // Ajustar escala do objeto
-                const scale = (objectId === 'will') ? 0.4 : 0.5;
+                const scale = (objectId === 'will') ? 0.8 : 0.3; // Will dobrado (0.4 -> 0.8), Bicicleta diminuída (0.5 -> 0.3)
                 objectEntity.object3D.scale.set(scale, scale, scale);
 
                 // Tornar o objeto visível
