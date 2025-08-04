@@ -210,6 +210,8 @@
             const collectibles = { will: false, bike: false };
             let foundCollectibles = 0;
             const objectsToPlace = ['will', 'bike'];
+            let currentObjectIndex = 0;
+            let currentObjectPlaced = false;
             let canPlace = true;
             let hitTestSource = null;
             let instructionText = null;
@@ -248,7 +250,7 @@
             function initGame() {
                 instructionText = document.createElement('p');
                 instructionText.id = 'instruction-text';
-                instructionText.innerText = "Mova o celular para descobrir objetos no seu ambiente...";
+                instructionText.innerText = "Mova o celular para encontrar Will Byers...";
                 gameUi.appendChild(instructionText);
 
                 // Inicializar hit-test source quando a sessão XR estiver ativa
@@ -292,8 +294,8 @@
                             reticle.object3D.scale
                         );
 
-                        // Colocar objeto automaticamente se possível
-                        if (canPlace && objectsToPlace.length > 0) {
+                        // Colocar objeto apenas se não há objeto atual colocado e ainda há objetos para colocar
+                        if (canPlace && !currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
                             placeObject(pose);
                         }
                     }
@@ -307,7 +309,7 @@
             }
 
             function placeObject(pose) {
-                const objectId = objectsToPlace.shift();
+                const objectId = objectsToPlace[currentObjectIndex];
                 const objectEntity = document.getElementById(objectId);
 
                 // Posicionar o objeto na superfície detectada
@@ -328,22 +330,14 @@
                 // Adicionar interação de toque/clique
                 objectEntity.addEventListener('click', () => collectItem(objectId));
 
+                // Marcar que o objeto atual foi colocado
+                currentObjectPlaced = true;
+
                 // Atualizar instruções
-                if (objectsToPlace.length > 0) {
-                    instructionText.innerText = `${objectId === 'will' ? 'Will Byers' : 'Bicicleta'} encontrado! Procure uma nova superfície.`;
-                } else {
-                    instructionText.innerText = "Todos os itens apareceram! Toque neles para coletar.";
-                    setTimeout(() => {
-                        if (instructionText) instructionText.style.display = 'none';
-                    }, 4000);
-                }
+                const objectName = objectId === 'will' ? 'Will Byers' : 'Bicicleta';
+                instructionText.innerText = `${objectName} encontrado! Toque nele para coletar.`;
 
                 canPlace = false;
-
-                // Permitir colocar próximo objeto após um tempo
-                setTimeout(() => {
-                    canPlace = true;
-                }, 2000);
             }
 
             function collectItem(id) {
@@ -358,7 +352,21 @@
                 const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
                 if (listItem) listItem.classList.add('found');
 
-                if (foundCollectibles >= Object.keys(collectibles).length) {
+                // Preparar para o próximo objeto
+                currentObjectIndex++;
+                currentObjectPlaced = false;
+
+                if (currentObjectIndex < objectsToPlace.length) {
+                    // Ainda há objetos para colocar
+                    const nextObjectName = objectsToPlace[currentObjectIndex] === 'will' ? 'Will Byers' : 'Bicicleta';
+                    instructionText.innerText = `Ótimo! Agora procure uma superfície para encontrar: ${nextObjectName}`;
+
+                    // Permitir colocar o próximo objeto após um breve delay
+                    setTimeout(() => {
+                        canPlace = true;
+                    }, 1500);
+                } else {
+                    // Todos os objetos foram coletados
                     showVictoryScreen();
                 }
             }
