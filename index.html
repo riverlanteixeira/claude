@@ -468,6 +468,8 @@
             }
 
             function answerCall() {
+                console.log('Ligação atendida');
+
                 // Esconder controles de ligação e mostrar tela ativa
                 document.querySelector('.caller-info').style.display = 'none';
                 document.querySelector('.call-controls').style.display = 'none';
@@ -477,18 +479,28 @@
                 startCallTimer();
 
                 // Tocar áudio do Dustin
-                dustinAudio.play().catch(error => {
+                dustinAudio.play().then(() => {
+                    console.log('Áudio iniciado com sucesso');
+                }).catch(error => {
                     console.error('Erro ao tocar áudio:', error);
+                    // Se áudio falhar, encerrar ligação após 3 segundos
+                    setTimeout(endCall, 3000);
                 });
 
                 // Quando o áudio terminar, encerrar ligação
-                dustinAudio.addEventListener('ended', endCall);
+                dustinAudio.addEventListener('ended', () => {
+                    console.log('Áudio terminou, encerrando ligação');
+                    endCall();
+                }, { once: true });
             }
 
             function declineCall() {
                 // Recusar ligação e ir direto para o AR
                 callScreen.classList.add('hidden');
                 startARSession();
+
+                // Ativar fallback caso AR não funcione
+                startGameFallback();
             }
 
             function startCallTimer() {
@@ -512,15 +524,28 @@
 
                 // Iniciar sessão AR
                 startARSession();
+
+                // Ativar fallback caso AR não funcione
+                startGameFallback();
             }
 
             async function startARSession() {
                 try {
-                    await sceneEl.enterAR();
+                    // Mostrar tela de loading temporariamente
+                    loadingScreen.classList.remove('hidden');
                     loadingInfo.innerText = "Iniciando AR...";
+
+                    await sceneEl.enterAR();
                 } catch (e) {
                     loadingInfo.innerText = "AR não suportado. Use um navegador e celular compatíveis.";
                     console.error(e);
+
+                    // Se AR falhar, mostrar interface do jogo mesmo assim para debug
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                        gameUi.style.display = 'block';
+                        initGame();
+                    }, 2000);
                 }
             }
 
@@ -534,6 +559,23 @@
                 gameUi.style.display = 'block';
                 initGame();
             });
+
+            // Fallback: se AR não iniciar em 5 segundos, mostrar interface mesmo assim
+            let arStarted = false;
+            sceneEl.addEventListener('enter-vr', () => {
+                arStarted = true;
+            });
+
+            function startGameFallback() {
+                setTimeout(() => {
+                    if (!arStarted && !gameUi.style.display === 'block') {
+                        console.log('AR não iniciou, usando fallback');
+                        loadingScreen.classList.add('hidden');
+                        gameUi.style.display = 'block';
+                        initGame();
+                    }
+                }, 5000);
+            }
 
             function initGame() {
                 instructionText = document.createElement('p');
