@@ -157,6 +157,150 @@
         #victory-screen p {
             font-size: 1.2em;
         }
+
+        /* Estilos da simulação de ligação */
+        #call-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        #call-screen.hidden {
+            display: none;
+        }
+
+        .caller-info {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .caller-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #e72626;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            border: 4px solid #fff;
+            box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
+            animation: callPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes callPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(231, 38, 38, 0.8);
+            }
+        }
+
+        .caller-name {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .call-status {
+            font-size: 1.2em;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .call-controls {
+            display: flex;
+            gap: 60px;
+            margin-top: 40px;
+        }
+
+        .call-button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            transition: all 0.3s ease;
+        }
+
+        .answer-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .answer-button:hover {
+            background-color: #45a049;
+            transform: scale(1.1);
+        }
+
+        .decline-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .decline-button:hover {
+            background-color: #da190b;
+            transform: scale(1.1);
+        }
+
+        .call-active {
+            text-align: center;
+        }
+
+        .call-timer {
+            font-size: 1.1em;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .audio-visualizer {
+            width: 200px;
+            height: 4px;
+            background-color: #333;
+            border-radius: 2px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .audio-wave {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #e72626);
+            border-radius: 2px;
+            animation: audioWave 2s ease-in-out infinite;
+        }
+
+        @keyframes audioWave {
+
+            0%,
+            100% {
+                width: 20%;
+            }
+
+            50% {
+                width: 80%;
+            }
+        }
     </style>
 </head>
 
@@ -215,7 +359,36 @@
             <h1>Você Conseguiu!</h1>
             <p>Todos os itens foram encontrados.</p>
         </div>
+
+        <!-- Tela de simulação de ligação -->
+        <div id="call-screen" class="ui-element hidden">
+            <div class="caller-info">
+                <div class="caller-avatar">📻</div>
+                <div class="caller-name">Dustin Henderson</div>
+                <div class="call-status">Ligação recebida...</div>
+            </div>
+
+            <div class="call-controls">
+                <button class="call-button decline-button" id="decline-call">📞</button>
+                <button class="call-button answer-button" id="answer-call">📞</button>
+            </div>
+
+            <div id="call-active-screen" class="call-active hidden">
+                <div class="call-timer" id="call-timer">00:00</div>
+                <div class="caller-name">Dustin Henderson</div>
+                <div class="audio-visualizer">
+                    <div class="audio-wave"></div>
+                </div>
+                <p style="color: #ccc; margin-top: 20px;">Ouvindo mensagem...</p>
+            </div>
+        </div>
     </div>
+
+    <!-- Áudio da mensão do Dustin -->
+    <audio id="dustin-audio" preload="auto">
+        <source src="assets/audio/dustin-missao-1.mp3" type="audio/mpeg">
+        Seu navegador não suporta o elemento de áudio.
+    </audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -227,6 +400,12 @@
             const gameUi = document.getElementById('game-ui');
             const victoryScreen = document.getElementById('victory-screen');
             const reticle = document.getElementById('reticle');
+            const callScreen = document.getElementById('call-screen');
+            const answerButton = document.getElementById('answer-call');
+            const declineButton = document.getElementById('decline-call');
+            const callActiveScreen = document.getElementById('call-active-screen');
+            const callTimer = document.getElementById('call-timer');
+            const dustinAudio = document.getElementById('dustin-audio');
 
 
             const collectibles = { will: false, bike: false };
@@ -267,7 +446,75 @@
 
             simulateLoading();
 
-            enterButton.addEventListener('click', async () => {
+            // Configurar eventos da ligação
+            answerButton.addEventListener('click', answerCall);
+            declineButton.addEventListener('click', declineCall);
+
+            function showIncomingCall() {
+                loadingScreen.classList.add('hidden');
+                callScreen.classList.remove('hidden');
+
+                // Vibrar para simular ligação recebida
+                vibrateDevice();
+
+                // Vibrar periodicamente para simular toque
+                const vibrationInterval = setInterval(() => {
+                    vibrateDevice();
+                }, 2000);
+
+                // Parar vibração quando atender ou recusar
+                answerButton.addEventListener('click', () => clearInterval(vibrationInterval), { once: true });
+                declineButton.addEventListener('click', () => clearInterval(vibrationInterval), { once: true });
+            }
+
+            function answerCall() {
+                // Esconder controles de ligação e mostrar tela ativa
+                document.querySelector('.caller-info').style.display = 'none';
+                document.querySelector('.call-controls').style.display = 'none';
+                callActiveScreen.classList.remove('hidden');
+
+                // Iniciar timer da ligação
+                startCallTimer();
+
+                // Tocar áudio do Dustin
+                dustinAudio.play().catch(error => {
+                    console.error('Erro ao tocar áudio:', error);
+                });
+
+                // Quando o áudio terminar, encerrar ligação
+                dustinAudio.addEventListener('ended', endCall);
+            }
+
+            function declineCall() {
+                // Recusar ligação e ir direto para o AR
+                callScreen.classList.add('hidden');
+                startARSession();
+            }
+
+            function startCallTimer() {
+                let seconds = 0;
+                const timerInterval = setInterval(() => {
+                    seconds++;
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    callTimer.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                }, 1000);
+
+                // Parar timer quando áudio terminar
+                dustinAudio.addEventListener('ended', () => {
+                    clearInterval(timerInterval);
+                });
+            }
+
+            function endCall() {
+                // Esconder tela de ligação
+                callScreen.classList.add('hidden');
+
+                // Iniciar sessão AR
+                startARSession();
+            }
+
+            async function startARSession() {
                 try {
                     await sceneEl.enterAR();
                     loadingInfo.innerText = "Iniciando AR...";
@@ -275,6 +522,11 @@
                     loadingInfo.innerText = "AR não suportado. Use um navegador e celular compatíveis.";
                     console.error(e);
                 }
+            }
+
+            enterButton.addEventListener('click', async () => {
+                // Mostrar simulação de ligação em vez de iniciar AR diretamente
+                showIncomingCall();
             });
 
             sceneEl.addEventListener('enter-vr', () => {
