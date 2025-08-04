@@ -9,6 +9,11 @@
 
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- Three.js já está incluído no A-Frame, mas vamos garantir acesso global -->
+    <script>
+        // Garantir que THREE esteja disponível globalmente
+        window.THREE = window.THREE || AFRAME.THREE;
+    </script>
 
     <style>
         html,
@@ -253,12 +258,95 @@
                 instructionText.innerText = "Mova o celular para encontrar Will Byers...";
                 gameUi.appendChild(instructionText);
 
+                // Configurar sistema de toque para coleta
+                setupTouchInteraction();
+
                 // Inicializar hit-test source quando a sessão XR estiver ativa
                 const renderer = sceneEl.renderer;
                 const xrSession = renderer.xr.getSession();
 
                 if (xrSession) {
                     setupHitTest(xrSession, renderer);
+                }
+            }
+
+            function setupTouchInteraction() {
+                // Adicionar listener para toque na tela
+                sceneEl.addEventListener('touchstart', handleTouch);
+                sceneEl.addEventListener('click', handleTouch);
+                
+                // Adicionar também um listener para toque em qualquer lugar da tela como fallback
+                document.addEventListener('touchstart', handleScreenTouch);
+                document.addEventListener('click', handleScreenTouch);
+            }
+
+            function handleScreenTouch(event) {
+                // Se há um objeto colocado e visível, colete-o com qualquer toque na tela
+                if (currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const currentObject = document.getElementById(currentObjectId);
+                    
+                    if (currentObject && currentObject.getAttribute('visible') === true) {
+                        event.preventDefault();
+                        collectItem(currentObjectId);
+                    }
+                }
+            }
+
+            function handleTouch(event) {
+                if (!currentObjectPlaced || currentObjectIndex >= objectsToPlace.length) return;
+
+                // Prevenir comportamento padrão
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Obter coordenadas do toque (normalizado para -1 a 1)
+                let clientX, clientY;
+                if (event.touches && event.touches.length > 0) {
+                    clientX = event.touches[0].clientX;
+                    clientY = event.touches[0].clientY;
+                } else {
+                    clientX = event.clientX || event.detail.clientX;
+                    clientY = event.clientY || event.detail.clientY;
+                }
+
+                // Obter canvas da cena
+                const canvas = sceneEl.canvas || sceneEl.renderer.domElement;
+                const rect = canvas.getBoundingClientRect();
+                
+                const mouse = {
+                    x: ((clientX - rect.left) / rect.width) * 2 - 1,
+                    y: -((clientY - rect.top) / rect.height) * 2 + 1
+                };
+
+                // Fazer raycast para verificar se tocou no objeto
+                try {
+                    const raycaster = new THREE.Raycaster();
+                    const camera = sceneEl.camera;
+                    
+                    raycaster.setFromCamera(mouse, camera);
+
+                    // Verificar se o raio intersecta com o objeto atual
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const currentObject = document.getElementById(currentObjectId);
+                    
+                    if (currentObject && currentObject.getAttribute('visible') === true) {
+                        const intersects = raycaster.intersectObject(currentObject.object3D, true);
+                        
+                        if (intersects.length > 0) {
+                            // Objeto foi tocado!
+                            console.log('Objeto tocado:', currentObjectId);
+                            collectItem(currentObjectId);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro no raycasting:', error);
+                    // Fallback: coletar objeto se estiver visível (para debug)
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const currentObject = document.getElementById(currentObjectId);
+                    if (currentObject && currentObject.getAttribute('visible') === true) {
+                        collectItem(currentObjectId);
+                    }
                 }
             }
 
@@ -327,15 +415,12 @@
                 // Tornar o objeto visível
                 objectEntity.setAttribute('visible', true);
 
-                // Adicionar interação de toque/clique
-                objectEntity.addEventListener('click', () => collectItem(objectId));
-
                 // Marcar que o objeto atual foi colocado
                 currentObjectPlaced = true;
 
                 // Atualizar instruções
                 const objectName = objectId === 'will' ? 'Will Byers' : 'Bicicleta';
-                instructionText.innerText = `${objectName} encontrado! Toque nele para coletar.`;
+                instructionText.innerText = `${objectName} encontrado! Toque na tela para coletar.`;
 
                 canPlace = false;
             }
