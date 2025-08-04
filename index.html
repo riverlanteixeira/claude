@@ -187,15 +187,12 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background-color: #e72626;
             margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
             border: 4px solid #fff;
             box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
             animation: callPulse 2s ease-in-out infinite;
+            object-fit: cover;
+            display: block;
         }
 
         @keyframes callPulse {
@@ -305,10 +302,11 @@
 </head>
 
 <body>
-    <!-- A-Frame Scene com Hit-Test -->
+    <!-- A-Frame Scene -->
     <a-scene id="ar-scene"
-        webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
-        vr-mode-ui="enabled: false;" renderer="logarithmicDepthBuffer: true; colorManagement: true;">
+        vr-mode-ui="enabled: false;" 
+        renderer="logarithmicDepthBuffer: true; colorManagement: true;"
+        background="color: #000000">
         <a-assets>
             <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
             <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
@@ -363,7 +361,7 @@
         <!-- Tela de simulação de ligação -->
         <div id="call-screen" class="ui-element hidden">
             <div class="caller-info">
-                <div class="caller-avatar">📻</div>
+                <img class="caller-avatar" src="assets/img/dustin.png" alt="Dustin Henderson">
                 <div class="caller-name">Dustin Henderson</div>
                 <div class="call-status">Ligação recebida...</div>
             </div>
@@ -530,23 +528,18 @@
             }
 
             async function startARSession() {
-                try {
-                    // Mostrar tela de loading temporariamente
-                    loadingScreen.classList.remove('hidden');
-                    loadingInfo.innerText = "Iniciando AR...";
-
-                    await sceneEl.enterAR();
-                } catch (e) {
-                    loadingInfo.innerText = "AR não suportado. Use um navegador e celular compatíveis.";
-                    console.error(e);
-
-                    // Se AR falhar, mostrar interface do jogo mesmo assim para debug
-                    setTimeout(() => {
-                        loadingScreen.classList.add('hidden');
-                        gameUi.style.display = 'block';
-                        initGame();
-                    }, 2000);
-                }
+                console.log('Iniciando jogo sem AR');
+                
+                // Mostrar tela de loading temporariamente
+                loadingScreen.classList.remove('hidden');
+                loadingInfo.innerText = "Iniciando jogo...";
+                
+                // Simular carregamento e ir direto para o jogo
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    gameUi.style.display = 'block';
+                    initGame();
+                }, 1000);
             }
 
             enterButton.addEventListener('click', async () => {
@@ -567,21 +560,20 @@
             });
 
             function startGameFallback() {
-                setTimeout(() => {
-                    if (!arStarted && !gameUi.style.display === 'block') {
-                        console.log('AR não iniciou, usando fallback');
-                        loadingScreen.classList.add('hidden');
-                        gameUi.style.display = 'block';
-                        initGame();
-                    }
-                }, 5000);
+                // Não precisamos mais de fallback, o jogo sempre inicia
+                console.log('Fallback não necessário - jogo sempre inicia');
             }
 
             function initGame() {
-                instructionText = document.createElement('p');
-                instructionText.id = 'instruction-text';
-                instructionText.innerText = "Iniciando geolocalização...";
-                gameUi.appendChild(instructionText);
+                console.log('Inicializando jogo');
+                
+                // Verificar se já existe o texto de instrução
+                if (!instructionText) {
+                    instructionText = document.createElement('p');
+                    instructionText.id = 'instruction-text';
+                    instructionText.innerText = "Iniciando geolocalização...";
+                    gameUi.appendChild(instructionText);
+                }
 
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
@@ -589,13 +581,7 @@
                 // Inicializar geolocalização
                 setupGeolocation();
 
-                // Inicializar hit-test source quando a sessão XR estiver ativa
-                const renderer = sceneEl.renderer;
-                const xrSession = renderer.xr.getSession();
-
-                if (xrSession) {
-                    setupHitTest(xrSession, renderer);
-                }
+                console.log('Jogo inicializado com sucesso');
             }
 
             function setupGeolocation() {
@@ -689,8 +675,11 @@
                     vibrateDevice();
 
                     // Atualizar instruções e status
-                    instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Procure uma superfície para encontrá-lo.`;
+                    instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Toque na tela para coletá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
+                    
+                    // Simular que o objeto foi "colocado" e está visível
+                    currentObjectPlaced = true;
 
                     console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
                 } else {
@@ -711,15 +700,12 @@
             }
 
             function handleScreenTouch(event) {
-                // Se há um objeto colocado e visível, colete-o com qualquer toque na tela
+                // Se há um objeto colocado, colete-o com qualquer toque na tela
                 if (currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
                     const currentObjectId = objectsToPlace[currentObjectIndex];
-                    const currentObject = document.getElementById(currentObjectId);
-
-                    if (currentObject && currentObject.getAttribute('visible') === true) {
-                        event.preventDefault();
-                        collectItem(currentObjectId);
-                    }
+                    event.preventDefault();
+                    console.log('Coletando item por toque:', currentObjectId);
+                    collectItem(currentObjectId);
                 }
             }
 
