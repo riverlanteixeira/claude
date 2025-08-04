@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Stranger Things AR - Caça aos Objetos</title>
+    <meta name="description" content="Descubra os objetos que aparecem no seu mundo">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .ui-element {
+            pointer-events: auto;
+        }
+
+        .ui-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .ui-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #logo {
+            width: 80%;
+            max-width: 400px;
+            margin-bottom: 30px;
+        }
+
+        #progress-bar-container {
+            width: 70%;
+            max-width: 350px;
+            height: 20px;
+            border: 2px solid #e72626;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #e72626;
+            transition: width 0.4s ease-in-out;
+        }
+
+        #loading-info {
+            font-size: 1em;
+            color: #ccc;
+            height: 40px;
+            margin-top: 10px;
+            text-align: center;
+            padding: 0 15px;
+        }
+
+        #enter-button {
+            display: none;
+            /* Começa escondido */
+            margin-top: 40px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #e72626;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.1em;
+            display: none;
+        }
+
+        #game-ui h2 {
+            margin: 0 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e72626;
+            font-size: 1.2em;
+        }
+
+        #collectibles-list li {
+            list-style: none;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        #collectibles-list li.found {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        #victory-screen h1 {
+            font-size: 2.5em;
+            color: #e72626;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        #victory-screen p {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- A-Frame Scene com Hit-Test -->
+    <a-scene id="ar-scene"
+        webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
+        vr-mode-ui="enabled: false;" renderer="logarithmicDepthBuffer: true; colorManagement: true;">
+        <a-assets>
+            <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
+            <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- Iluminação da Cena -->
+        <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
+        <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
+
+        <a-camera fov="80"></a-camera>
+
+        <!-- Retícula (Anel) - agora apenas um indicador visual -->
+        <a-entity id="reticle" visible="false" geometry="primitive: ring; radius-inner: 0.05; radius-outer: 0.1;"
+            material="color: #e72626; shader: flat;"></a-entity>
+
+        <!-- Entidades colecionáveis -->
+        <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false"></a-entity>
+        <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
+    </a-scene>
+
+    <!-- UI Overlay -->
+    <div id="overlay">
+        <div id="loading-screen" class="ui-screen ui-element">
+            <img id="logo" src="assets/img/stranger-things-logo.png" alt="Stranger Things Logo">
+            <div id="progress-bar-container">
+                <div id="progress-bar"></div>
+            </div>
+            <p id="loading-info">Carregando assets...</p>
+            <button id="enter-button" class="ui-element">Entrar no Mundo Invertido</button>
+        </div>
+
+        <div id="game-ui" class="ui-element">
+            <h2>Itens para Encontrar:</h2>
+            <ul id="collectibles-list">
+                <li data-item="will">Will Byers</li>
+                <li data-item="bike">Bicicleta</li>
+            </ul>
+        </div>
+
+        <div id="victory-screen" class="ui-screen ui-element hidden">
+            <h1>Você Conseguiu!</h1>
+            <p>Todos os itens foram encontrados.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sceneEl = document.getElementById('ar-scene');
+            const loadingScreen = document.getElementById('loading-screen');
+            const enterButton = document.getElementById('enter-button');
+            const loadingInfo = document.getElementById('loading-info');
+            const progressBar = document.getElementById('progress-bar');
+            const gameUi = document.getElementById('game-ui');
+            const victoryScreen = document.getElementById('victory-screen');
+            const reticle = document.getElementById('reticle');
+
+            const collectibles = { will: false, bike: false };
+            let foundCollectibles = 0;
+            const objectsToPlace = ['will', 'bike'];
+            let canPlace = true;
+            let hitTestSource = null;
+            let instructionText = null;
+
+            function simulateLoading() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 25;
+                    progressBar.style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        loadingInfo.innerText = "Pronto para iniciar!";
+                        document.getElementById('progress-bar-container').style.display = 'none';
+                        enterButton.style.display = 'block';
+                    }
+                }, 300);
+            }
+            simulateLoading();
+
+            enterButton.addEventListener('click', async () => {
+                try {
+                    await sceneEl.enterAR();
+                    loadingInfo.innerText = "Iniciando AR...";
+                } catch (e) {
+                    loadingInfo.innerText = "AR não suportado. Use um navegador e celular compatíveis.";
+                    console.error(e);
+                }
+            });
+
+            sceneEl.addEventListener('enter-vr', () => {
+                loadingScreen.classList.add('hidden');
+                gameUi.style.display = 'block';
+                initGame();
+            });
+
+            function initGame() {
+                instructionText = document.createElement('p');
+                instructionText.id = 'instruction-text';
+                instructionText.innerText = "Mova o celular para descobrir objetos no seu ambiente...";
+                gameUi.appendChild(instructionText);
+
+                // Inicializar hit-test source quando a sessão XR estiver ativa
+                const renderer = sceneEl.renderer;
+                const xrSession = renderer.xr.getSession();
+
+                if (xrSession) {
+                    setupHitTest(xrSession, renderer);
+                }
+            }
+
+            async function setupHitTest(session, renderer) {
+                try {
+                    const referenceSpace = await session.requestReferenceSpace('viewer');
+                    hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
+
+                    // Iniciar o loop de hit-test
+                    renderer.setAnimationLoop(onXRFrame);
+                } catch (error) {
+                    console.error('Erro ao configurar hit-test:', error);
+                    instructionText.innerText = "Erro ao inicializar detecção de superfície.";
+                }
+            }
+
+            function onXRFrame(timestamp, frame) {
+                if (!frame || !hitTestSource) return;
+
+                const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+                if (hitTestResults.length > 0) {
+                    const hit = hitTestResults[0];
+                    const pose = hit.getPose(sceneEl.renderer.xr.getReferenceSpace());
+
+                    if (pose) {
+                        // Mostrar retícula na posição da superfície detectada
+                        reticle.setAttribute('visible', true);
+                        reticle.object3D.matrix.fromArray(pose.transform.matrix);
+                        reticle.object3D.matrix.decompose(
+                            reticle.object3D.position,
+                            reticle.object3D.quaternion,
+                            reticle.object3D.scale
+                        );
+
+                        // Colocar objeto automaticamente se possível
+                        if (canPlace && objectsToPlace.length > 0) {
+                            placeObject(pose);
+                        }
+                    }
+                } else {
+                    // Esconder retícula quando não há superfície detectada
+                    reticle.setAttribute('visible', false);
+                }
+
+                // Continuar renderizando a cena
+                sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
+            }
+
+            function placeObject(pose) {
+                const objectId = objectsToPlace.shift();
+                const objectEntity = document.getElementById(objectId);
+
+                // Posicionar o objeto na superfície detectada
+                objectEntity.object3D.matrix.fromArray(pose.transform.matrix);
+                objectEntity.object3D.matrix.decompose(
+                    objectEntity.object3D.position,
+                    objectEntity.object3D.quaternion,
+                    objectEntity.object3D.scale
+                );
+
+                // Ajustar escala do objeto
+                const scale = (objectId === 'will') ? 0.4 : 0.5;
+                objectEntity.object3D.scale.set(scale, scale, scale);
+
+                // Tornar o objeto visível
+                objectEntity.setAttribute('visible', true);
+
+                // Adicionar interação de toque/clique
+                objectEntity.addEventListener('click', () => collectItem(objectId));
+
+                // Atualizar instruções
+                if (objectsToPlace.length > 0) {
+                    instructionText.innerText = `${objectId === 'will' ? 'Will Byers' : 'Bicicleta'} encontrado! Procure uma nova superfície.`;
+                } else {
+                    instructionText.innerText = "Todos os itens apareceram! Toque neles para coletar.";
+                    setTimeout(() => {
+                        if (instructionText) instructionText.style.display = 'none';
+                    }, 4000);
+                }
+
+                canPlace = false;
+
+                // Permitir colocar próximo objeto após um tempo
+                setTimeout(() => {
+                    canPlace = true;
+                }, 2000);
+            }
+
+            function collectItem(id) {
+                if (collectibles[id]) return;
+
+                collectibles[id] = true;
+                foundCollectibles++;
+
+                const entity = document.getElementById(id);
+                if (entity) entity.setAttribute('visible', 'false');
+
+                const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
+                if (listItem) listItem.classList.add('found');
+
+                if (foundCollectibles >= Object.keys(collectibles).length) {
+                    showVictoryScreen();
+                }
+            }
+
+            function showVictoryScreen() {
+                gameUi.style.display = 'none';
+                victoryScreen.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
