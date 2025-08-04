@@ -185,11 +185,7 @@
         <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
     </a-scene>
 
-    <!-- Áudio da música tema -->
-    <audio id="theme-music" loop preload="auto" volume="0.7" autoplay></audio>
-    <source src="assets/audio/musica-tema.mp3" type="audio/mpeg">
-    Seu navegador não suporta o elemento de áudio.
-    </audio>
+
 
     <!-- UI Overlay -->
     <div id="overlay">
@@ -199,7 +195,7 @@
                 <div id="progress-bar"></div>
             </div>
             <p id="loading-info">Carregando assets...</p>
-            <p id="music-info" style="font-size: 0.8em; color: #999; margin-top: 5px;">🎵 Música tema tocando...</p>
+
             <button id="enter-button" class="ui-element">Entrar no Mundo Invertido</button>
         </div>
 
@@ -231,7 +227,7 @@
             const gameUi = document.getElementById('game-ui');
             const victoryScreen = document.getElementById('victory-screen');
             const reticle = document.getElementById('reticle');
-            const themeMusic = document.getElementById('theme-music');
+
 
             const collectibles = { will: false, bike: false };
             let foundCollectibles = 0;
@@ -254,9 +250,6 @@
             const PROXIMITY_RADIUS = 10; // 10 metros
 
             function simulateLoading() {
-                // Tentar tocar a música tema
-                playThemeMusic();
-
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 25;
@@ -270,59 +263,11 @@
                 }, 300);
             }
 
-            function playThemeMusic() {
-                // Configurar volume
-                themeMusic.volume = 0.7;
 
-                // Forçar início da música sem aguardar interação
-                const forcePlay = () => {
-                    themeMusic.play().then(() => {
-                        document.getElementById('music-info').style.display = 'block';
-                        document.getElementById('music-info').innerText = '🎵 Música tema tocando...';
-                    }).catch(error => {
-                        console.log('Tentativa de autoplay falhou, tentando novamente...');
-                        // Tentar novamente após um pequeno delay
-                        setTimeout(forcePlay, 100);
-                    });
-                };
-
-                // Iniciar imediatamente
-                forcePlay();
-
-                // Também tentar quando houver interação como backup
-                document.addEventListener('click', playMusicOnFirstClick, { once: true });
-                document.addEventListener('touchstart', playMusicOnFirstClick, { once: true });
-            }
-
-            function playMusicOnFirstClick() {
-                themeMusic.play().then(() => {
-                    document.getElementById('music-info').style.display = 'block';
-                }).catch(error => {
-                    console.error('Erro ao tocar música:', error);
-                    document.getElementById('music-info').innerText = '🔇 Música não disponível';
-                });
-            }
-
-            function stopThemeMusic() {
-                // Fade out suave antes de parar
-                const fadeOut = setInterval(() => {
-                    if (themeMusic.volume > 0.1) {
-                        themeMusic.volume -= 0.1;
-                    } else {
-                        clearInterval(fadeOut);
-                        themeMusic.pause();
-                        themeMusic.currentTime = 0;
-                        themeMusic.volume = 0.7; // Resetar volume para próxima vez
-                    }
-                }, 100);
-            }
 
             simulateLoading();
 
             enterButton.addEventListener('click', async () => {
-                // Parar a música tema quando o usuário iniciar o jogo
-                stopThemeMusic();
-
                 try {
                     await sceneEl.enterAR();
                     loadingInfo.innerText = "Iniciando AR...";
