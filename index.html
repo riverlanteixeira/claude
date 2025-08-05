@@ -6,10 +6,13 @@
     <title>Stranger Things AR - Caça aos Objetos</title>
     <meta name="description" content="Descubra os objetos que aparecem no seu mundo">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <style>
-        html,
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -138,128 +141,6 @@
             border: 1px solid #e72626;
         }
 
-        .collect-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(76, 175, 80, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-            z-index: 15;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-            }
-
-            50% {
-                transform: translate(-50%, -50%) scale(1.05);
-            }
-        }
-
-        .object-3d {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 3px solid #e72626;
-            background: radial-gradient(circle, rgba(231, 38, 38, 0.8) 0%, rgba(231, 38, 38, 0.3) 70%);
-            box-shadow: 0 0 30px rgba(231, 38, 38, 0.6);
-            z-index: 12;
-            display: none;
-            animation: float 3s ease-in-out infinite;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .object-3d:hover {
-            transform: scale(1.1);
-        }
-
-        .object-3d.will {
-            top: 40%;
-            left: 30%;
-            background: radial-gradient(circle, rgba(76, 175, 80, 0.8) 0%, rgba(76, 175, 80, 0.3) 70%);
-            border-color: #4CAF50;
-            box-shadow: 0 0 30px rgba(76, 175, 80, 0.6);
-        }
-
-        .object-3d.bike {
-            top: 60%;
-            right: 30%;
-            background: radial-gradient(circle, rgba(255, 193, 7, 0.8) 0%, rgba(255, 193, 7, 0.3) 70%);
-            border-color: #FFC107;
-            box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
-        }
-
-        .object-3d::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            animation: innerPulse 2s ease-in-out infinite;
-        }
-
-        .object-3d.will::after {
-            content: '👦';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2em;
-            z-index: 1;
-        }
-
-        .object-3d.bike::after {
-            content: '🚲';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2em;
-            z-index: 1;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes innerPulse {
-
-            0%,
-            100% {
-                opacity: 0.3;
-                transform: translate(-50%, -50%) scale(1);
-            }
-
-            50% {
-                opacity: 0.7;
-                transform: translate(-50%, -50%) scale(1.2);
-            }
-        }
-
         #victory-screen h1 {
             font-size: 2.5em;
             color: #e72626;
@@ -281,6 +162,38 @@
             object-fit: cover;
             z-index: 1;
             background-color: #1a1a1a;
+        }
+
+        /* Canvas para modelos 3D */
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: auto;
+        }
+
+        .collect-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 15;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
         }
 
         /* Estilos da simulação de ligação */
@@ -321,13 +234,10 @@
         }
 
         @keyframes callPulse {
-
-            0%,
-            100% {
+            0%, 100% {
                 transform: scale(1);
                 box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
             }
-
             50% {
                 transform: scale(1.05);
                 box-shadow: 0 0 30px rgba(231, 38, 38, 0.8);
@@ -413,15 +323,8 @@
         }
 
         @keyframes audioWave {
-
-            0%,
-            100% {
-                width: 20%;
-            }
-
-            50% {
-                width: 80%;
-            }
+            0%, 100% { width: 20%; }
+            50% { width: 80%; }
         }
     </style>
 </head>
@@ -430,9 +333,8 @@
     <!-- Câmera do dispositivo -->
     <video id="camera-feed" autoplay playsinline muted></video>
 
-    <!-- Objetos 3D -->
-    <div id="will-object" class="object-3d will"></div>
-    <div id="bike-object" class="object-3d bike"></div>
+    <!-- Canvas para renderizar modelos 3D -->
+    <canvas id="three-canvas"></canvas>
 
     <!-- UI Overlay -->
     <div id="overlay">
@@ -507,6 +409,12 @@
             const callActiveScreen = document.getElementById('call-active-screen');
             const callTimer = document.getElementById('call-timer');
             const dustinAudio = document.getElementById('dustin-audio');
+            const canvas = document.getElementById('three-canvas');
+
+            // Three.js variables
+            let scene, camera, renderer, loader;
+            let willModel = null, bikeModel = null;
+            let currentModel = null;
 
             const collectibles = { will: false, bike: false };
             let foundCollectibles = 0;
@@ -518,14 +426,100 @@
             let geolocationWatchId = null;
             let currentLocation = null;
             let locationUnlocked = [false, false];
+            let touchListenerAdded = false;
+            let audioPlayed = false;
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
-                { lat: -27.63981155644153, lng: -48.667791205568285, name: 'Will Byers' },
-                { lat: -27.63981155644153, lng: -48.667791205568285, name: 'Bicicleta' }
+                { lat: -27.63990544473344, lng: -48.66787969102447, name: 'Will Byers' },
+                { lat: -27.63990544473344, lng: -48.66787969102447, name: 'Bicicleta' }
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
+
+            // Inicializar Three.js
+            function initThreeJS() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(0x000000, 0);
+
+                // Iluminação
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 1, 1);
+                scene.add(directionalLight);
+
+                // Loader para modelos GLB
+                loader = new THREE.GLTFLoader();
+
+                // Carregar modelos
+                loadModels();
+
+                // Posicionar câmera
+                camera.position.z = 5;
+
+                console.log('Three.js inicializado');
+            }
+
+            function loadModels() {
+                // Carregar Will Byers
+                loader.load('assets/models/will_byers.glb', (gltf) => {
+                    willModel = gltf.scene;
+                    willModel.scale.set(0.8, 0.8, 0.8);
+                    willModel.position.set(-2, 0, 0);
+                    willModel.visible = false;
+                    scene.add(willModel);
+                    console.log('Modelo Will Byers carregado');
+                }, undefined, (error) => {
+                    console.error('Erro ao carregar Will Byers:', error);
+                });
+
+                // Carregar Bicicleta
+                loader.load('assets/models/bicicleta-will.glb', (gltf) => {
+                    bikeModel = gltf.scene;
+                    bikeModel.scale.set(0.3, 0.3, 0.3);
+                    bikeModel.position.set(2, 0, 0);
+                    bikeModel.visible = false;
+                    scene.add(bikeModel);
+                    console.log('Modelo Bicicleta carregado');
+                }, undefined, (error) => {
+                    console.error('Erro ao carregar Bicicleta:', error);
+                });
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Rotacionar modelo atual se existir
+                if (currentModel) {
+                    currentModel.rotation.y += 0.01;
+                }
+
+                renderer.render(scene, camera);
+            }
+
+            function showModel(modelType) {
+                hideAllModels();
+                
+                if (modelType === 'will' && willModel) {
+                    willModel.visible = true;
+                    currentModel = willModel;
+                    console.log('Modelo Will mostrado');
+                } else if (modelType === 'bike' && bikeModel) {
+                    bikeModel.visible = true;
+                    currentModel = bikeModel;
+                    console.log('Modelo Bicicleta mostrado');
+                }
+            }
+
+            function hideAllModels() {
+                if (willModel) willModel.visible = false;
+                if (bikeModel) bikeModel.visible = false;
+                currentModel = null;
+            }
 
             function simulateLoading() {
                 let progress = 0;
@@ -583,7 +577,6 @@
                         endCall();
                     }, { once: true });
                 } else {
-                    // Se áudio já foi tocado, encerrar ligação imediatamente
                     setTimeout(endCall, 1000);
                 }
             }
@@ -620,7 +613,7 @@
 
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
+                        video: { 
                             facingMode: 'environment',
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
@@ -657,6 +650,10 @@
             function initGame() {
                 console.log('Inicializando jogo');
 
+                // Inicializar Three.js
+                initThreeJS();
+                animate();
+
                 if (!instructionText) {
                     instructionText = document.createElement('p');
                     instructionText.id = 'instruction-text';
@@ -669,34 +666,27 @@
                 console.log('Jogo inicializado com sucesso');
             }
 
-            let touchListenerAdded = false;
-            let audioPlayed = false;
-
             function setupTouchInteraction() {
                 if (!touchListenerAdded) {
+                    canvas.addEventListener('click', handleCanvasClick);
                     document.addEventListener('touchstart', handleScreenTouch);
                     document.addEventListener('click', handleScreenTouch);
-
-                    // Adicionar listeners para objetos 3D
-                    document.getElementById('will-object').addEventListener('click', () => {
-                        if (currentObjectPlaced && objectsToPlace[currentObjectIndex] === 'will') {
-                            collectItem('will');
-                        }
-                    });
-
-                    document.getElementById('bike-object').addEventListener('click', () => {
-                        if (currentObjectPlaced && objectsToPlace[currentObjectIndex] === 'bike') {
-                            collectItem('bike');
-                        }
-                    });
-
+                    
                     touchListenerAdded = true;
                     console.log('Touch listeners adicionados');
                 }
             }
 
+            function handleCanvasClick(event) {
+                if (currentObjectPlaced && currentModel && currentObjectIndex < objectsToPlace.length) {
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    event.preventDefault();
+                    console.log('Modelo 3D clicado:', currentObjectId);
+                    collectItem(currentObjectId);
+                }
+            }
+
             function handleScreenTouch(event) {
-                // Verificar se estamos no jogo e não na ligação
                 if (gameUi.style.display === 'block' && currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
                     const currentObjectId = objectsToPlace[currentObjectIndex];
                     event.preventDefault();
@@ -786,7 +776,7 @@
                 if (locationUnlocked[currentObjectIndex]) {
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
                     if (!currentObjectPlaced) {
-                        instructionText.innerText = `${currentObjectLocation.name} está próximo! Toque na tela para coletá-lo.`;
+                        instructionText.innerText = `${currentObjectLocation.name} está próximo! Toque no modelo 3D para coletá-lo.`;
                         currentObjectPlaced = true;
                     }
                 } else if (distance <= PROXIMITY_RADIUS) {
@@ -796,24 +786,20 @@
 
                     vibrateDevice();
 
-                    instructionText.innerText = `🎉 ${currentObjectLocation.name} encontrado! Toque na tela para coletá-lo.`;
+                    instructionText.innerText = `🎉 ${currentObjectLocation.name} encontrado! Toque no modelo 3D para coletá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
 
                     // Adicionar efeito visual de sucesso
                     gameUi.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
 
-                    // Mostrar objeto 3D
+                    // Mostrar modelo 3D
                     const currentObjectId = objectsToPlace[currentObjectIndex];
-                    const objectElement = document.getElementById(`${currentObjectId}-object`);
-                    if (objectElement) {
-                        objectElement.style.display = 'block';
-                        console.log(`Objeto 3D mostrado: ${currentObjectId}`);
-                    }
+                    showModel(currentObjectId);
 
                     // Adicionar indicador de coleta
                     const collectIndicator = document.createElement('div');
                     collectIndicator.className = 'collect-indicator';
-                    collectIndicator.innerHTML = `📍 ${currentObjectLocation.name}<br>Toque no objeto ou na tela para coletar!`;
+                    collectIndicator.innerHTML = `📍 ${currentObjectLocation.name}<br>Toque no modelo 3D para coletar!`;
                     document.body.appendChild(collectIndicator);
 
                     setTimeout(() => {
@@ -840,12 +826,8 @@
                 const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
                 if (listItem) listItem.classList.add('found');
 
-                // Esconder objeto 3D
-                const objectElement = document.getElementById(`${id}-object`);
-                if (objectElement) {
-                    objectElement.style.display = 'none';
-                    console.log(`Objeto 3D escondido: ${id}`);
-                }
+                // Esconder modelo 3D
+                hideAllModels();
 
                 // Remover indicador de coleta se existir
                 const existingIndicator = document.querySelector('.collect-indicator');
@@ -886,9 +868,19 @@
                     navigator.geolocation.clearWatch(geolocationWatchId);
                 }
 
+                hideAllModels();
                 gameUi.style.display = 'none';
                 victoryScreen.classList.remove('hidden');
             }
+
+            // Redimensionar canvas quando janela mudar
+            window.addEventListener('resize', () => {
+                if (camera && renderer) {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                }
+            });
         });
     </script>
 </body>
