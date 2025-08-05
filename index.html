@@ -177,7 +177,7 @@
         <a-assets>
             <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
             <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
-            <a-asset-item id="demogorgon-model" src="assets/models/demogorgon_animated.glb"></a-asset-item>
+            <a-asset-item id="demogorgon-model" src="assets/models/demogorgon.glb"></a-asset-item>
         </a-assets>
 
         <!-- Iluminação da Cena -->
@@ -193,8 +193,7 @@
         <!-- Entidades colecionáveis -->
         <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false"></a-entity>
         <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
-        <a-entity id="demogorgon" class="collectible" gltf-model="#demogorgon-model" visible="false"
-            animation-mixer></a-entity>
+        <a-entity id="demogorgon" class="collectible" gltf-model="#demogorgon-model" visible="false"></a-entity>
     </a-scene>
 
 
@@ -565,7 +564,7 @@
                 } else if (objectId === 'bike') {
                     scale = 0.3; // Bicicleta
                 } else if (objectId === 'demogorgon') {
-                    scale = 0.2; // Demogorgon
+                    scale = 0.8; // Demogorgon
                 } else {
                     scale = 0.5; // Padrão
                 }
