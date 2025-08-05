@@ -16,8 +16,6 @@
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Orbitron:wght@400;700;900&display=swap');
-
         html,
         body {
             margin: 0;
@@ -25,8 +23,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: 'Orbitron', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background: radial-gradient(circle at center, #1a0000, #000000);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
 
         #overlay {
@@ -49,488 +46,116 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #000000, #1a0000, #330000);
+            background-color: #000;
             color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            animation: screenGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes screenGlow {
-            0% {
-                box-shadow: inset 0 0 50px rgba(231, 38, 38, 0.1);
-            }
-
-            100% {
-                box-shadow: inset 0 0 80px rgba(231, 38, 38, 0.2);
-            }
+            transition: opacity 0.5s ease-out;
         }
 
         .ui-screen.hidden {
             opacity: 0;
             pointer-events: none;
-            transform: scale(0.95);
         }
 
         #logo {
-            width: 85%;
-            max-width: 450px;
-            margin-bottom: 40px;
-            filter: drop-shadow(0 0 20px rgba(231, 38, 38, 0.8));
-            animation: logoFloat 4s ease-in-out infinite;
-        }
-
-        @keyframes logoFloat {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
+            width: 80%;
+            max-width: 400px;
+            margin-bottom: 30px;
         }
 
         #progress-bar-container {
-            width: 75%;
-            max-width: 400px;
-            height: 25px;
-            border: 3px solid #e72626;
-            border-radius: 15px;
+            width: 70%;
+            max-width: 350px;
+            height: 20px;
+            border: 2px solid #e72626;
+            border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            box-shadow:
-                0 0 20px rgba(231, 38, 38, 0.5),
-                inset 0 0 20px rgba(0, 0, 0, 0.8);
-            position: relative;
-        }
-
-        #progress-bar-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% {
-                left: -100%;
-            }
-
-            100% {
-                left: 100%;
-            }
+            margin-bottom: 15px;
         }
 
         #progress-bar {
             width: 0%;
             height: 100%;
-            background: linear-gradient(90deg, #e72626, #ff4444, #e72626);
-            transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 0 15px rgba(231, 38, 38, 0.8);
-            position: relative;
-        }
-
-        #progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: progressGlow 1.5s ease-in-out infinite;
-        }
-
-        @keyframes progressGlow {
-
-            0%,
-            100% {
-                opacity: 0;
-            }
-
-            50% {
-                opacity: 1;
-            }
+            background-color: #e72626;
+            transition: width 0.4s ease-in-out;
         }
 
         #loading-info {
-            font-size: 1.1em;
+            font-size: 1em;
             color: #ccc;
-            height: 50px;
-            margin-top: 15px;
+            height: 40px;
+            margin-top: 10px;
             text-align: center;
-            padding: 0 20px;
-            text-shadow: 0 0 10px rgba(231, 38, 38, 0.5);
-            animation: textPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes textPulse {
-
-            0%,
-            100% {
-                opacity: 0.8;
-            }
-
-            50% {
-                opacity: 1;
-            }
+            padding: 0 15px;
         }
 
         #enter-button {
             display: none;
-            margin-top: 50px;
-            padding: 18px 40px;
-            font-size: 1.3em;
-            font-weight: 900;
+            /* Começa escondido */
+            margin-top: 40px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
             color: #fff;
-            background: linear-gradient(135deg, #e72626, #b91c1c, #e72626);
-            border: 3px solid #e72626;
-            border-radius: 10px;
+            background-color: #e72626;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            font-family: 'Orbitron', sans-serif;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow:
-                0 0 25px rgba(231, 38, 38, 0.6),
-                inset 0 0 25px rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        #enter-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        #enter-button:hover::before {
-            left: 100%;
-        }
-
-        #enter-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow:
-                0 8px 35px rgba(231, 38, 38, 0.8),
-                inset 0 0 30px rgba(255, 255, 255, 0.2);
-        }
-
-        #enter-button:active {
-            transform: translateY(-1px) scale(1.02);
+            letter-spacing: 2px;
         }
 
         #game-ui {
             position: absolute;
-            top: 25px;
-            left: 25px;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(231, 38, 38, 0.15));
-            backdrop-filter: blur(15px);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid rgba(231, 38, 38, 0.6);
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
             color: #fff;
             font-size: 1.1em;
             display: none;
-            box-shadow:
-                0 0 30px rgba(231, 38, 38, 0.4),
-                inset 0 0 30px rgba(0, 0, 0, 0.5);
-            animation: uiGlow 4s ease-in-out infinite alternate;
-            max-width: 320px;
-        }
-
-        @keyframes uiGlow {
-            0% {
-                box-shadow: 0 0 30px rgba(231, 38, 38, 0.4), inset 0 0 30px rgba(0, 0, 0, 0.5);
-            }
-
-            100% {
-                box-shadow: 0 0 40px rgba(231, 38, 38, 0.6), inset 0 0 40px rgba(0, 0, 0, 0.3);
-            }
         }
 
         #game-ui h2 {
-            margin: 0 0 15px 0;
-            padding-bottom: 8px;
-            border-bottom: 3px solid #e72626;
-            font-size: 1.3em;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(231, 38, 38, 0.8);
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            0% {
-                text-shadow: 0 0 10px rgba(231, 38, 38, 0.8);
-            }
-
-            100% {
-                text-shadow: 0 0 20px rgba(231, 38, 38, 1);
-            }
-        }
-
-        #collectibles-list {
-            padding: 0;
-            margin: 0;
+            margin: 0 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e72626;
+            font-size: 1.2em;
         }
 
         #collectibles-list li {
             list-style: none;
-            margin-bottom: 8px;
-            padding: 8px 12px;
-            background: rgba(231, 38, 38, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid #e72626;
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            position: relative;
-            overflow: hidden;
-        }
-
-        #collectibles-list li::before {
-            content: '🎯';
-            margin-right: 8px;
-            font-size: 1.1em;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
         }
 
         #collectibles-list li.found {
             text-decoration: line-through;
             color: #888;
-            background: rgba(0, 255, 0, 0.1);
-            border-left-color: #00ff00;
-            animation: collectAnimation 0.6s ease-out;
-        }
-
-        #collectibles-list li.found::before {
-            content: '✅';
-        }
-
-        @keyframes collectAnimation {
-            0% {
-                transform: scale(1);
-                background: rgba(231, 38, 38, 0.1);
-            }
-
-            50% {
-                transform: scale(1.1);
-                background: rgba(0, 255, 0, 0.3);
-            }
-
-            100% {
-                transform: scale(1);
-                background: rgba(0, 255, 0, 0.1);
-            }
         }
 
         #location-info {
-            margin-top: 15px;
-            padding: 12px;
-            background: linear-gradient(135deg, rgba(231, 38, 38, 0.2), rgba(231, 38, 38, 0.1));
-            border-radius: 10px;
-            font-size: 0.95em;
-            border: 2px solid rgba(231, 38, 38, 0.5);
-            box-shadow: inset 0 0 15px rgba(231, 38, 38, 0.2);
-        }
-
-        #instruction-text {
-            margin-top: 15px;
-            padding: 12px;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-            border-radius: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            font-weight: 600;
-            text-align: center;
-            animation: instructionPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes instructionPulse {
-
-            0%,
-            100% {
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-
-            50% {
-                border-color: rgba(231, 38, 38, 0.6);
-            }
-        }
-
-        #victory-screen {
-            background: linear-gradient(135deg, #000000, #1a0000, #330000, #1a0000, #000000);
-            animation: victoryBackground 3s ease-in-out infinite;
-        }
-
-        @keyframes victoryBackground {
-
-            0%,
-            100% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(231, 38, 38, 0.2);
+            border-radius: 5px;
+            font-size: 0.9em;
+            border: 1px solid #e72626;
         }
 
         #victory-screen h1 {
-            font-size: 3em;
+            font-size: 2.5em;
             color: #e72626;
             text-transform: uppercase;
-            margin-bottom: 30px;
-            font-family: 'Nosifer', cursive;
-            text-shadow:
-                0 0 20px rgba(231, 38, 38, 1),
-                0 0 40px rgba(231, 38, 38, 0.8),
-                0 0 60px rgba(231, 38, 38, 0.6);
-            animation: victoryTitle 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes victoryTitle {
-            0% {
-                transform: scale(1);
-                text-shadow:
-                    0 0 20px rgba(231, 38, 38, 1),
-                    0 0 40px rgba(231, 38, 38, 0.8),
-                    0 0 60px rgba(231, 38, 38, 0.6);
-            }
-
-            100% {
-                transform: scale(1.05);
-                text-shadow:
-                    0 0 30px rgba(231, 38, 38, 1),
-                    0 0 50px rgba(231, 38, 38, 0.9),
-                    0 0 70px rgba(231, 38, 38, 0.7);
-            }
+            margin-bottom: 20px;
         }
 
         #victory-screen p {
-            font-size: 1.4em;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-            animation: victoryText 3s ease-in-out infinite;
-        }
-
-        @keyframes victoryText {
-
-            0%,
-            100% {
-                opacity: 0.9;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        /* Indicador de proximidade */
-        .proximity-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
-            border: 4px solid #e72626;
-            border-radius: 50%;
-            animation: proximityPulse 1.5s infinite;
-            pointer-events: none;
-            z-index: 15;
-            display: none;
-        }
-
-        @keyframes proximityPulse {
-            0% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 1;
-                border-color: #e72626;
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(2);
-                opacity: 0;
-                border-color: #ff6666;
-            }
-        }
-
-        /* Efeito de scan */
-        .scan-line {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #e72626, transparent);
-            animation: scanMove 3s linear infinite;
-            pointer-events: none;
-            z-index: 12;
-            display: none;
-        }
-
-        @keyframes scanMove {
-            0% {
-                top: 0%;
-                opacity: 1;
-            }
-
-            100% {
-                top: 100%;
-                opacity: 0;
-            }
-        }
-
-        /* Responsividade */
-        @media (max-width: 480px) {
-            #game-ui {
-                top: 15px;
-                left: 15px;
-                right: 15px;
-                max-width: none;
-                padding: 15px;
-            }
-
-            #victory-screen h1 {
-                font-size: 2.2em;
-            }
-
-            #logo {
-                width: 90%;
-            }
-
-            #enter-button {
-                padding: 15px 30px;
-                font-size: 1.1em;
-            }
-        }
-
-        /* Animação de entrada para elementos da UI */
-        .fade-in {
-            animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        @keyframes fadeInUp {
-            0% {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            font-size: 1.2em;
         }
     </style>
 </head>
@@ -590,10 +215,6 @@
             <h1>Você Conseguiu!</h1>
             <p>Todos os itens foram encontrados.</p>
         </div>
-
-        <!-- Indicadores visuais -->
-        <div id="proximity-indicator" class="proximity-indicator"></div>
-        <div id="scan-line" class="scan-line"></div>
     </div>
 
     <script>
@@ -666,16 +287,7 @@
                 instructionText = document.createElement('p');
                 instructionText.id = 'instruction-text';
                 instructionText.innerText = "Iniciando geolocalização...";
-                instructionText.className = 'fade-in';
                 gameUi.appendChild(instructionText);
-
-                // Adicionar animação de entrada para o game UI
-                gameUi.classList.add('fade-in');
-
-                // Mostrar dica inicial
-                setTimeout(() => {
-                    showHint("Bem-vindo ao Mundo Invertido! Encontre os objetos perdidos.", 4000);
-                }, 1000);
 
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
@@ -753,60 +365,6 @@
                 }
             }
 
-            function showUnlockEffect() {
-                // Efeito de scan quando desbloquear localização
-                const scanLine = document.getElementById('scan-line');
-                scanLine.style.display = 'block';
-
-                // Esconder após 3 segundos
-                setTimeout(() => {
-                    scanLine.style.display = 'none';
-                }, 3000);
-
-                // Efeito de flash na tela
-                const overlay = document.getElementById('overlay');
-                overlay.style.background = 'rgba(231, 38, 38, 0.3)';
-                overlay.style.transition = 'background 0.3s ease';
-
-                setTimeout(() => {
-                    overlay.style.background = 'transparent';
-                }, 300);
-            }
-
-            function showHint(message, duration = 3000) {
-                // Criar elemento de dica
-                const hint = document.createElement('div');
-                hint.className = 'hint-popup fade-in';
-                hint.style.cssText = `
-                    position: fixed;
-                    top: 20%;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: linear-gradient(135deg, rgba(231, 38, 38, 0.95), rgba(0, 0, 0, 0.9));
-                    color: white;
-                    padding: 15px 25px;
-                    border-radius: 10px;
-                    border: 2px solid #e72626;
-                    font-family: 'Orbitron', sans-serif;
-                    font-weight: 600;
-                    text-align: center;
-                    z-index: 20;
-                    box-shadow: 0 0 20px rgba(231, 38, 38, 0.6);
-                    max-width: 80%;
-                    pointer-events: none;
-                `;
-                hint.textContent = message;
-
-                document.getElementById('overlay').appendChild(hint);
-
-                // Remover após duração especificada
-                setTimeout(() => {
-                    hint.style.opacity = '0';
-                    hint.style.transform = 'translateX(-50%) translateY(-20px)';
-                    setTimeout(() => hint.remove(), 300);
-                }, duration);
-            }
-
             function checkProximityToLocations() {
                 if (!currentLocation) return;
 
@@ -822,14 +380,12 @@
 
                 // Atualizar indicador de localização
                 const locationStatus = document.getElementById('location-status');
-                const proximityIndicator = document.getElementById('proximity-indicator');
                 const distanceText = distance > 1000 ?
                     `${(distance / 1000).toFixed(1)}km` :
                     `${Math.round(distance)}m`;
 
                 if (locationUnlocked[currentObjectIndex]) {
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
-                    proximityIndicator.style.display = 'none';
                 } else if (distance <= PROXIMITY_RADIUS) {
                     // Jogador chegou perto o suficiente!
                     locationUnlocked[currentObjectIndex] = true;
@@ -838,26 +394,15 @@
                     // Vibrar o dispositivo
                     vibrateDevice();
 
-                    // Mostrar efeito visual de desbloqueio
-                    showUnlockEffect();
-
                     // Atualizar instruções e status
                     instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Procure uma superfície para encontrá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
-                    proximityIndicator.style.display = 'none';
 
                     console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
                 } else {
-                    // Mostrar distância atual e indicador de proximidade
+                    // Mostrar distância atual
                     instructionText.innerText = `Vá até a localização de ${currentObjectLocation.name}`;
                     locationStatus.innerHTML = `🎯 ${currentObjectLocation.name}: ${distanceText}`;
-
-                    // Mostrar indicador de proximidade se estiver relativamente perto
-                    if (distance <= PROXIMITY_RADIUS * 3) {
-                        proximityIndicator.style.display = 'block';
-                    } else {
-                        proximityIndicator.style.display = 'none';
-                    }
                 }
             }
 
@@ -1000,32 +545,11 @@
                 );
 
                 // Ajustar escala do objeto
-                const scale = (objectId === 'will') ? 0.8 : 0.3;
-
-                // Iniciar com escala zero para animação de entrada
-                objectEntity.object3D.scale.set(0, 0, 0);
+                const scale = (objectId === 'will') ? 0.8 : 0.3; // Will dobrado (0.4 -> 0.8), Bicicleta diminuída (0.5 -> 0.3)
+                objectEntity.object3D.scale.set(scale, scale, scale);
 
                 // Tornar o objeto visível
                 objectEntity.setAttribute('visible', true);
-
-                // Adicionar animação de entrada
-                objectEntity.setAttribute('animation', {
-                    property: 'scale',
-                    from: '0 0 0',
-                    to: `${scale} ${scale} ${scale}`,
-                    dur: 800,
-                    easing: 'easeOutBounce'
-                });
-
-                // Adicionar rotação contínua para chamar atenção
-                objectEntity.setAttribute('animation__rotate', {
-                    property: 'rotation',
-                    from: '0 0 0',
-                    to: '0 360 0',
-                    dur: 4000,
-                    loop: true,
-                    easing: 'linear'
-                });
 
                 // Marcar que o objeto atual foi colocado
                 currentObjectPlaced = true;
@@ -1033,9 +557,6 @@
                 // Atualizar instruções
                 const objectName = objectId === 'will' ? 'Will Byers' : 'Bicicleta';
                 instructionText.innerText = `${objectName} encontrado! Toque na tela para coletar.`;
-
-                // Mostrar dica
-                showHint(`${objectName} apareceu! Toque para coletar.`, 2500);
 
                 canPlace = false;
             }
@@ -1047,34 +568,10 @@
                 foundCollectibles++;
 
                 const entity = document.getElementById(id);
-                if (entity) {
-                    // Animação de coleta antes de esconder
-                    entity.setAttribute('animation__collect', {
-                        property: 'scale',
-                        from: entity.object3D.scale.x + ' ' + entity.object3D.scale.y + ' ' + entity.object3D.scale.z,
-                        to: '0 0 0',
-                        dur: 500,
-                        easing: 'easeInQuart'
-                    });
-
-                    // Parar rotação
-                    entity.removeAttribute('animation__rotate');
-
-                    // Esconder após animação
-                    setTimeout(() => {
-                        entity.setAttribute('visible', 'false');
-                    }, 500);
-                }
+                if (entity) entity.setAttribute('visible', 'false');
 
                 const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
                 if (listItem) listItem.classList.add('found');
-
-                // Vibrar dispositivo
-                vibrateDevice();
-
-                // Mostrar efeito de coleta
-                const objectName = id === 'will' ? 'Will Byers' : 'Bicicleta';
-                showHint(`✅ ${objectName} coletado!`, 2000);
 
                 // Preparar para o próximo objeto
                 currentObjectIndex++;
@@ -1083,11 +580,7 @@
                 if (currentObjectIndex < objectsToPlace.length) {
                     // Ainda há objetos para colocar
                     const nextObjectName = objectsToPlace[currentObjectIndex] === 'will' ? 'Will Byers' : 'Bicicleta';
-
-                    setTimeout(() => {
-                        instructionText.innerText = `Ótimo! Agora vá até a localização de ${nextObjectName}`;
-                        showHint(`Próximo objetivo: ${nextObjectName}`, 3000);
-                    }, 1000);
+                    instructionText.innerText = `Ótimo! Agora vá até a localização de ${nextObjectName}`;
 
                     // Resetar flags para o próximo objeto
                     canPlace = false;
@@ -1098,9 +591,7 @@
                     }, 1500);
                 } else {
                     // Todos os objetos foram coletados
-                    setTimeout(() => {
-                        showVictoryScreen();
-                    }, 1000);
+                    showVictoryScreen();
                 }
             }
 
@@ -1110,26 +601,8 @@
                     navigator.geolocation.clearWatch(geolocationWatchId);
                 }
 
-                // Efeito de transição suave
-                gameUi.style.opacity = '0';
-                gameUi.style.transform = 'scale(0.8)';
-                gameUi.style.transition = 'all 0.5s ease-out';
-
-                setTimeout(() => {
-                    gameUi.style.display = 'none';
-                    victoryScreen.classList.remove('hidden');
-
-                    // Adicionar classe fade-in para animação de entrada
-                    victoryScreen.classList.add('fade-in');
-
-                    // Vibração de vitória
-                    if (navigator.vibrate) {
-                        navigator.vibrate([200, 100, 200, 100, 400]);
-                    }
-
-                    // Mostrar efeito de scan final
-                    showUnlockEffect();
-                }, 500);
+                gameUi.style.display = 'none';
+                victoryScreen.classList.remove('hidden');
             }
         });
     </script>
