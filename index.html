@@ -13,6 +13,42 @@
     <script>
         // Garantir que THREE esteja disponível globalmente
         window.THREE = window.THREE || AFRAME.THREE;
+
+        // Componente para corrigir materiais dos modelos GLB
+        AFRAME.registerComponent('fix-materials', {
+            init: function () {
+                this.el.addEventListener('model-loaded', () => {
+                    this.fixMaterials();
+                });
+            },
+
+            fixMaterials: function () {
+                const object3D = this.el.object3D;
+
+                object3D.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        // Garantir que o material seja visível
+                        if (child.material.transparent) {
+                            child.material.transparent = false;
+                        }
+
+                        // Ajustar propriedades do material para melhor visibilidade
+                        if (child.material.isMeshStandardMaterial) {
+                            child.material.metalness = Math.min(child.material.metalness, 0.3);
+                            child.material.roughness = Math.max(child.material.roughness, 0.4);
+                        }
+
+                        // Forçar atualização do material
+                        child.material.needsUpdate = true;
+
+                        // Garantir que o objeto seja visível
+                        child.visible = true;
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
+            }
+        });
     </script>
 
     <style>
@@ -252,43 +288,51 @@
     <!-- A-Frame Scene com Hit-Test -->
     <a-scene id="ar-scene"
         webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
-        vr-mode-ui="enabled: false;" renderer="logarithmicDepthBuffer: true; colorManagement: true;"
-        background="color: transparent;">
-        <a-assets>
-            <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
-            <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
-            <a-asset-item id="demogorgon-model" src="assets/models/demogorgon.glb"></a-asset-item>
-            <a-asset-item id="baseball-bat-model" src="assets/models/baseball_bat.glb"></a-asset-item>
-            <a-asset-item id="compass-model" src="assets/models/compass.glb"></a-asset-item>
-            <a-asset-item id="dungeon-masters-guide-model" src="assets/models/dungeon_masters_guide.glb"></a-asset-item>
-            <a-asset-item id="machado-model" src="assets/models/machado.glb"></a-asset-item>
-            <a-asset-item id="walkie-talkie-model" src="assets/models/walkie_talkie.glb"></a-asset-item>
-            <a-asset-item id="will-mundo-invertido-model"
-                src="assets/models/will_byers_mundo_invertido.glb"></a-asset-item>
-        </a-assets>
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true; colorManagement: true; gammaOutput: true; physicallyCorrectLights: true;"
+        shadow="type: pcf; autoUpdate: true;" background="color: transparent;"></a-scene>
+    <a-assets>
+        <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
+        <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
+        <a-asset-item id="demogorgon-model" src="assets/models/demogorgon.glb"></a-asset-item>
+        <a-asset-item id="baseball-bat-model" src="assets/models/baseball_bat.glb"></a-asset-item>
+        <a-asset-item id="compass-model" src="assets/models/compass.glb"></a-asset-item>
+        <a-asset-item id="dungeon-masters-guide-model" src="assets/models/dungeon_masters_guide.glb"></a-asset-item>
+        <a-asset-item id="machado-model" src="assets/models/machado.glb"></a-asset-item>
+        <a-asset-item id="walkie-talkie-model" src="assets/models/walkie_talkie.glb"></a-asset-item>
+        <a-asset-item id="will-mundo-invertido-model" src="assets/models/will_byers_mundo_invertido.glb"></a-asset-item>
+    </a-assets>
 
-        <!-- Iluminação da Cena -->
-        <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
-        <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
+    <!-- Iluminação da Cena -->
+    <a-light type="ambient" color="#FFF" intensity="1.0"></a-light>
+    <a-light type="directional" color="#FFF" intensity="1.2" position="-1 2 1"></a-light>
+    <a-light type="point" color="#FFF" intensity="0.8" position="0 2 0"></a-light>
 
-        <a-camera fov="80"></a-camera>
+    <a-camera fov="80"></a-camera>
 
-        <!-- Retícula (Anel) - agora apenas um indicador visual -->
-        <a-entity id="reticle" visible="false" geometry="primitive: ring; radius-inner: 0.05; radius-outer: 0.1;"
-            material="color: #e72626; shader: flat;"></a-entity>
+    <!-- Retícula (Anel) - agora apenas um indicador visual -->
+    <a-entity id="reticle" visible="false" geometry="primitive: ring; radius-inner: 0.05; radius-outer: 0.1;"
+        material="color: #e72626; shader: flat;"></a-entity>
 
-        <!-- Entidades colecionáveis -->
-        <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false"></a-entity>
-        <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
-        <a-entity id="demogorgon" class="collectible" gltf-model="#demogorgon-model" visible="false"></a-entity>
-        <a-entity id="baseball-bat" class="collectible" gltf-model="#baseball-bat-model" visible="false"></a-entity>
-        <a-entity id="compass" class="collectible" gltf-model="#compass-model" visible="false"></a-entity>
-        <a-entity id="dungeon-masters-guide" class="collectible" gltf-model="#dungeon-masters-guide-model"
-            visible="false"></a-entity>
-        <a-entity id="machado" class="collectible" gltf-model="#machado-model" visible="false"></a-entity>
-        <a-entity id="walkie-talkie" class="collectible" gltf-model="#walkie-talkie-model" visible="false"></a-entity>
-        <a-entity id="will-mundo-invertido" class="collectible" gltf-model="#will-mundo-invertido-model"
-            visible="false"></a-entity>
+    <!-- Entidades colecionáveis -->
+    <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false" shadow="cast: true; receive: true"
+        fix-materials></a-entity>
+    <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false" shadow="cast: true; receive: true"
+        fix-materials></a-entity>
+    <a-entity id="demogorgon" class="collectible" gltf-model="#demogorgon-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
+    <a-entity id="baseball-bat" class="collectible" gltf-model="#baseball-bat-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
+    <a-entity id="compass" class="collectible" gltf-model="#compass-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
+    <a-entity id="dungeon-masters-guide" class="collectible" gltf-model="#dungeon-masters-guide-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
+    <a-entity id="machado" class="collectible" gltf-model="#machado-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
+    <a-entity id="walkie-talkie" class="collectible" gltf-model="#walkie-talkie-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
+    <a-entity id="will-mundo-invertido" class="collectible" gltf-model="#will-mundo-invertido-model" visible="false"
+        shadow="cast: true; receive: true" fix-materials></a-entity>
     </a-scene>
 
 
@@ -763,11 +807,11 @@
                 } else if (objectId === 'baseball-bat') {
                     scale = 2; // Taco de Baseball
                 } else if (objectId === 'compass') {
-                    scale = 2; // Bússola
+                    scale = 5; // Bússola (aumentada)
                 } else if (objectId === 'dungeon-masters-guide') {
                     scale = 0.4; // Guia do Mestre
                 } else if (objectId === 'machado') {
-                    scale = 2; // Machado
+                    scale = 4; // Machado (aumentado)
                 } else if (objectId === 'walkie-talkie') {
                     scale = 0.6; // Walkie-Talkie
                 } else if (objectId === 'will-mundo-invertido') {
