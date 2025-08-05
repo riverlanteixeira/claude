@@ -172,12 +172,12 @@
     <!-- A-Frame Scene com Hit-Test -->
     <a-scene id="ar-scene"
         webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
-        vr-mode-ui="enabled: false;" 
-        renderer="logarithmicDepthBuffer: true; colorManagement: true;"
+        vr-mode-ui="enabled: false;" renderer="logarithmicDepthBuffer: true; colorManagement: true;"
         background="color: transparent;">
         <a-assets>
             <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
             <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
+            <a-asset-item id="demogorgon-model" src="assets/models/demogorgon_animated.glb"></a-asset-item>
         </a-assets>
 
         <!-- Iluminação da Cena -->
@@ -193,6 +193,8 @@
         <!-- Entidades colecionáveis -->
         <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false"></a-entity>
         <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
+        <a-entity id="demogorgon" class="collectible" gltf-model="#demogorgon-model" visible="false"
+            animation-mixer></a-entity>
     </a-scene>
 
 
@@ -214,6 +216,7 @@
             <ul id="collectibles-list">
                 <li data-item="will">Will Byers</li>
                 <li data-item="bike">Bicicleta</li>
+                <li data-item="demogorgon">Demogorgon</li>
             </ul>
             <div id="location-info">
                 <strong>📍 Localização:</strong><br>
@@ -239,9 +242,9 @@
             const reticle = document.getElementById('reticle');
 
 
-            const collectibles = { will: false, bike: false };
+            const collectibles = { will: false, bike: false, demogorgon: false };
             let foundCollectibles = 0;
-            const objectsToPlace = ['will', 'bike'];
+            const objectsToPlace = ['will', 'bike', 'demogorgon'];
             let currentObjectIndex = 0;
             let currentObjectPlaced = false;
             let canPlace = false; // Inicialmente false até chegar na localização
@@ -249,12 +252,13 @@
             let instructionText = null;
             let geolocationWatchId = null;
             let currentLocation = null;
-            let locationUnlocked = [false, false]; // Controla se cada localização foi desbloqueada
+            let locationUnlocked = [false, false, false]; // Controla se cada localização foi desbloqueada
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
                 { lat: -27.639820466982766, lng: -48.66781802715768, name: 'Will Byers' },
-                { lat: -27.639820466982766, lng: -48.66781802715768, name: 'Bicicleta' }
+                { lat: -27.639820466982767, lng: -48.66781802715769, name: 'Bicicleta' },
+                { lat: -27.639820466982765, lng: -48.66781802715767, name: 'Demogorgon' }
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
@@ -555,7 +559,16 @@
                 );
 
                 // Ajustar escala do objeto
-                const scale = (objectId === 'will') ? 0.8 : 0.3; // Will dobrado (0.4 -> 0.8), Bicicleta diminuída (0.5 -> 0.3)
+                let scale;
+                if (objectId === 'will') {
+                    scale = 0.8; // Will Byers
+                } else if (objectId === 'bike') {
+                    scale = 0.3; // Bicicleta
+                } else if (objectId === 'demogorgon') {
+                    scale = 0.5; // Demogorgon
+                } else {
+                    scale = 0.5; // Padrão
+                }
                 objectEntity.object3D.scale.set(scale, scale, scale);
 
                 // Tornar o objeto visível
@@ -565,7 +578,16 @@
                 currentObjectPlaced = true;
 
                 // Atualizar instruções
-                const objectName = objectId === 'will' ? 'Will Byers' : 'Bicicleta';
+                let objectName;
+                if (objectId === 'will') {
+                    objectName = 'Will Byers';
+                } else if (objectId === 'bike') {
+                    objectName = 'Bicicleta';
+                } else if (objectId === 'demogorgon') {
+                    objectName = 'Demogorgon';
+                } else {
+                    objectName = 'Objeto';
+                }
                 instructionText.innerText = `${objectName} encontrado! Toque na tela para coletar.`;
 
                 canPlace = false;
@@ -589,7 +611,17 @@
 
                 if (currentObjectIndex < objectsToPlace.length) {
                     // Ainda há objetos para colocar
-                    const nextObjectName = objectsToPlace[currentObjectIndex] === 'will' ? 'Will Byers' : 'Bicicleta';
+                    let nextObjectName;
+                    const nextObjectId = objectsToPlace[currentObjectIndex];
+                    if (nextObjectId === 'will') {
+                        nextObjectName = 'Will Byers';
+                    } else if (nextObjectId === 'bike') {
+                        nextObjectName = 'Bicicleta';
+                    } else if (nextObjectId === 'demogorgon') {
+                        nextObjectName = 'Demogorgon';
+                    } else {
+                        nextObjectName = 'próximo objeto';
+                    }
                     instructionText.innerText = `Ótimo! Agora vá até a localização de ${nextObjectName}`;
 
                     // Resetar flags para o próximo objeto
