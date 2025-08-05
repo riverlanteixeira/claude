@@ -165,6 +165,86 @@
             display: none !important;
             visibility: hidden !important;
         }
+
+        /* Tela de ligação do Dustin */
+        #call-screen {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            position: relative;
+        }
+
+        #dustin-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #e72626;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(231, 38, 38, 0.5);
+        }
+
+        #caller-name {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        #call-status {
+            font-size: 1.2em;
+            color: #ccc;
+            margin-bottom: 40px;
+        }
+
+        #call-buttons {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .call-button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            transition: transform 0.2s ease;
+        }
+
+        .call-button:hover {
+            transform: scale(1.1);
+        }
+
+        #answer-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #decline-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* Animação de chamada */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .calling-animation {
+            animation: pulse 1.5s infinite;
+        }
     </style>
 </head>
 
@@ -223,6 +303,16 @@
             </div>
         </div>
 
+        <div id="call-screen" class="ui-screen ui-element hidden">
+            <img id="dustin-avatar" src="assets/img/dustin.png" alt="Dustin Henderson">
+            <div id="caller-name">Dustin Henderson</div>
+            <div id="call-status">Ligação recebida...</div>
+            <div id="call-buttons">
+                <button id="decline-button" class="call-button ui-element">✖</button>
+                <button id="answer-button" class="call-button ui-element calling-animation">📞</button>
+            </div>
+        </div>
+
         <div id="victory-screen" class="ui-screen ui-element hidden">
             <h1>Você Conseguiu!</h1>
             <p>Todos os itens foram encontrados.</p>
@@ -269,14 +359,82 @@
                     progressBar.style.width = progress + '%';
                     if (progress >= 100) {
                         clearInterval(interval);
-                        loadingInfo.innerText = "Pronto para iniciar!";
+                        loadingInfo.innerText = "Carregamento concluído!";
                         document.getElementById('progress-bar-container').style.display = 'none';
-                        enterButton.style.display = 'block';
+
+                        // Mostrar ligação do Dustin após 1 segundo
+                        setTimeout(() => {
+                            showDustinCall();
+                        }, 1000);
                     }
                 }, 300);
             }
 
 
+
+            // Elementos da ligação
+            const callScreen = document.getElementById('call-screen');
+            const answerButton = document.getElementById('answer-button');
+            const declineButton = document.getElementById('decline-button');
+            let dustinAudio = null;
+
+            function showDustinCall() {
+                loadingScreen.classList.add('hidden');
+                callScreen.classList.remove('hidden');
+
+                // Configurar eventos dos botões
+                answerButton.addEventListener('click', answerCall);
+                declineButton.addEventListener('click', declineCall);
+            }
+
+            function answerCall() {
+                // Criar e tocar o áudio do Dustin
+                dustinAudio = new Audio('assets/audio/dustin-missao-1.mp3');
+
+                // Atualizar interface
+                document.getElementById('call-status').innerText = "Chamada em andamento...";
+                document.getElementById('call-buttons').style.display = 'none';
+
+                // Remover animação
+                answerButton.classList.remove('calling-animation');
+
+                dustinAudio.play().catch(error => {
+                    console.error('Erro ao reproduzir áudio:', error);
+                    // Fallback: continuar mesmo sem áudio
+                    endCall();
+                });
+
+                // Quando o áudio terminar, mostrar botão de iniciar
+                dustinAudio.addEventListener('ended', endCall);
+
+                // Fallback: se o áudio não carregar, continuar após 10 segundos
+                setTimeout(() => {
+                    if (dustinAudio && !dustinAudio.ended) {
+                        endCall();
+                    }
+                }, 10000);
+            }
+
+            function declineCall() {
+                // Se recusar a ligação, pular direto para o jogo
+                endCall();
+            }
+
+            function endCall() {
+                // Parar áudio se estiver tocando
+                if (dustinAudio) {
+                    dustinAudio.pause();
+                    dustinAudio = null;
+                }
+
+                // Esconder tela de ligação e mostrar botão de iniciar
+                callScreen.classList.add('hidden');
+                loadingScreen.classList.remove('hidden');
+
+                // Mostrar botão de entrar
+                loadingInfo.innerText = "Pronto para iniciar!";
+                enterButton.style.display = 'block';
+            }
 
             simulateLoading();
 
@@ -560,9 +718,9 @@
                 // Ajustar escala do objeto
                 let scale;
                 if (objectId === 'will') {
-                    scale = 0.8; // Will Byers
+                    scale = 0.9; // Will Byers
                 } else if (objectId === 'bike') {
-                    scale = 0.3; // Bicicleta
+                    scale = 0.4; // Bicicleta
                 } else if (objectId === 'demogorgon') {
                     scale = 0.8; // Demogorgon
                 } else {
