@@ -164,7 +164,9 @@
     <!-- A-Frame Scene com Hit-Test -->
     <a-scene id="ar-scene"
         webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
-        vr-mode-ui="enabled: false;" renderer="logarithmicDepthBuffer: true; colorManagement: true;">
+        vr-mode-ui="enabled: false;" 
+        renderer="logarithmicDepthBuffer: true; colorManagement: true;"
+        background="color: transparent;">
         <a-assets>
             <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
             <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
