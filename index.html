@@ -6,13 +6,18 @@
     <title>Stranger Things AR - Caça aos Objetos</title>
     <meta name="description" content="Descubra os objetos que aparecem no seu mundo">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- Three.js já está incluído no A-Frame, mas vamos garantir acesso global -->
+    <script>
+        // Garantir que THREE esteja disponível globalmente
+        window.THREE = window.THREE || AFRAME.THREE;
+    </script>
 
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -89,6 +94,7 @@
 
         #enter-button {
             display: none;
+            /* Começa escondido */
             margin-top: 40px;
             padding: 15px 30px;
             font-size: 1.2em;
@@ -151,190 +157,33 @@
         #victory-screen p {
             font-size: 1.2em;
         }
-
-        /* Estilos da câmera */
-        #camera-feed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
-            background-color: #1a1a1a;
-        }
-
-        /* Canvas para modelos 3D */
-        #three-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 5;
-            pointer-events: auto;
-        }
-
-        .collect-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(76, 175, 80, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-            z-index: 15;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.05); }
-        }
-
-        /* Estilos da simulação de ligação */
-        #call-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-        }
-
-        #call-screen.hidden {
-            display: none;
-        }
-
-        .caller-info {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .caller-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            border: 4px solid #fff;
-            box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
-            animation: callPulse 2s ease-in-out infinite;
-            object-fit: cover;
-            display: block;
-        }
-
-        @keyframes callPulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
-            }
-            50% {
-                transform: scale(1.05);
-                box-shadow: 0 0 30px rgba(231, 38, 38, 0.8);
-            }
-        }
-
-        .caller-name {
-            font-size: 1.8em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .call-status {
-            font-size: 1.2em;
-            color: #ccc;
-            margin-bottom: 20px;
-        }
-
-        .call-controls {
-            display: flex;
-            gap: 60px;
-            margin-top: 40px;
-        }
-
-        .call-button {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8em;
-            transition: all 0.3s ease;
-        }
-
-        .answer-button {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .answer-button:hover {
-            background-color: #45a049;
-            transform: scale(1.1);
-        }
-
-        .decline-button {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .decline-button:hover {
-            background-color: #da190b;
-            transform: scale(1.1);
-        }
-
-        .call-active {
-            text-align: center;
-        }
-
-        .call-timer {
-            font-size: 1.1em;
-            color: #4CAF50;
-            margin-bottom: 20px;
-        }
-
-        .audio-visualizer {
-            width: 200px;
-            height: 4px;
-            background-color: #333;
-            border-radius: 2px;
-            margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .audio-wave {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #e72626);
-            border-radius: 2px;
-            animation: audioWave 2s ease-in-out infinite;
-        }
-
-        @keyframes audioWave {
-            0%, 100% { width: 20%; }
-            50% { width: 80%; }
-        }
     </style>
 </head>
 
 <body>
-    <!-- Câmera do dispositivo -->
-    <video id="camera-feed" autoplay playsinline muted></video>
+    <!-- A-Frame Scene com Hit-Test -->
+    <a-scene id="ar-scene"
+        webxr="requiredFeatures: hit-test, local-floor; optionalFeatures: dom-overlay; overlayElement: #overlay;"
+        vr-mode-ui="enabled: false;" renderer="logarithmicDepthBuffer: true; colorManagement: true;">
+        <a-assets>
+            <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
+            <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
+        </a-assets>
 
-    <!-- Canvas para renderizar modelos 3D -->
-    <canvas id="three-canvas"></canvas>
+        <!-- Iluminação da Cena -->
+        <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
+        <a-light type="directional" color="#FFF" intensity="0.8" position="-1 2 1"></a-light>
+
+        <a-camera fov="80"></a-camera>
+
+        <!-- Retícula (Anel) - agora apenas um indicador visual -->
+        <a-entity id="reticle" visible="false" geometry="primitive: ring; radius-inner: 0.05; radius-outer: 0.1;"
+            material="color: #e72626; shader: flat;"></a-entity>
+
+        <!-- Entidades colecionáveis -->
+        <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false"></a-entity>
+        <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
+    </a-scene>
 
     <!-- UI Overlay -->
     <div id="overlay">
@@ -363,163 +212,38 @@
             <h1>Você Conseguiu!</h1>
             <p>Todos os itens foram encontrados.</p>
         </div>
-
-        <!-- Tela de simulação de ligação -->
-        <div id="call-screen" class="ui-element hidden">
-            <div class="caller-info">
-                <img class="caller-avatar" src="assets/img/dustin.png" alt="Dustin Henderson">
-                <div class="caller-name">Dustin Henderson</div>
-                <div class="call-status">Ligação recebida...</div>
-            </div>
-
-            <div class="call-controls">
-                <button class="call-button decline-button" id="decline-call">📞</button>
-                <button class="call-button answer-button" id="answer-call">📞</button>
-            </div>
-
-            <div id="call-active-screen" class="call-active hidden">
-                <div class="call-timer" id="call-timer">00:00</div>
-                <div class="caller-name">Dustin Henderson</div>
-                <div class="audio-visualizer">
-                    <div class="audio-wave"></div>
-                </div>
-                <p style="color: #ccc; margin-top: 20px;">Ouvindo mensagem...</p>
-            </div>
-        </div>
     </div>
-
-    <!-- Áudio da mensão do Dustin -->
-    <audio id="dustin-audio" preload="auto">
-        <source src="assets/audio/dustin-missao-1.mp3" type="audio/mpeg">
-        Seu navegador não suporta o elemento de áudio.
-    </audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const cameraFeed = document.getElementById('camera-feed');
+            const sceneEl = document.getElementById('ar-scene');
             const loadingScreen = document.getElementById('loading-screen');
             const enterButton = document.getElementById('enter-button');
             const loadingInfo = document.getElementById('loading-info');
             const progressBar = document.getElementById('progress-bar');
             const gameUi = document.getElementById('game-ui');
             const victoryScreen = document.getElementById('victory-screen');
-            const callScreen = document.getElementById('call-screen');
-            const answerButton = document.getElementById('answer-call');
-            const declineButton = document.getElementById('decline-call');
-            const callActiveScreen = document.getElementById('call-active-screen');
-            const callTimer = document.getElementById('call-timer');
-            const dustinAudio = document.getElementById('dustin-audio');
-            const canvas = document.getElementById('three-canvas');
-
-            // Three.js variables
-            let scene, camera, renderer, loader;
-            let willModel = null, bikeModel = null;
-            let currentModel = null;
+            const reticle = document.getElementById('reticle');
 
             const collectibles = { will: false, bike: false };
             let foundCollectibles = 0;
             const objectsToPlace = ['will', 'bike'];
             let currentObjectIndex = 0;
             let currentObjectPlaced = false;
-            let canPlace = false;
+            let canPlace = false; // Inicialmente false até chegar na localização
+            let hitTestSource = null;
             let instructionText = null;
             let geolocationWatchId = null;
             let currentLocation = null;
-            let locationUnlocked = [false, false];
-            let touchListenerAdded = false;
-            let audioPlayed = false;
+            let locationUnlocked = [false, false]; // Controla se cada localização foi desbloqueada
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
-                { lat: -27.63990544473344, lng: -48.66787969102447, name: 'Will Byers' },
-                { lat: -27.63990544473344, lng: -48.66787969102447, name: 'Bicicleta' }
+                { lat: -27.639679087813015, lng: -48.66762088480492, name: 'Will Byers' },
+                { lat: -27.639926798254773, lng: -48.66778986396444, name: 'Bicicleta' }
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
-
-            // Inicializar Three.js
-            function initThreeJS() {
-                scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setClearColor(0x000000, 0);
-
-                // Iluminação
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-                scene.add(ambientLight);
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                directionalLight.position.set(1, 1, 1);
-                scene.add(directionalLight);
-
-                // Loader para modelos GLB
-                loader = new THREE.GLTFLoader();
-
-                // Carregar modelos
-                loadModels();
-
-                // Posicionar câmera
-                camera.position.z = 5;
-
-                console.log('Three.js inicializado');
-            }
-
-            function loadModels() {
-                // Carregar Will Byers
-                loader.load('assets/models/will_byers.glb', (gltf) => {
-                    willModel = gltf.scene;
-                    willModel.scale.set(0.8, 0.8, 0.8);
-                    willModel.position.set(-2, 0, 0);
-                    willModel.visible = false;
-                    scene.add(willModel);
-                    console.log('Modelo Will Byers carregado');
-                }, undefined, (error) => {
-                    console.error('Erro ao carregar Will Byers:', error);
-                });
-
-                // Carregar Bicicleta
-                loader.load('assets/models/bicicleta-will.glb', (gltf) => {
-                    bikeModel = gltf.scene;
-                    bikeModel.scale.set(0.3, 0.3, 0.3);
-                    bikeModel.position.set(2, 0, 0);
-                    bikeModel.visible = false;
-                    scene.add(bikeModel);
-                    console.log('Modelo Bicicleta carregado');
-                }, undefined, (error) => {
-                    console.error('Erro ao carregar Bicicleta:', error);
-                });
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-
-                // Rotacionar modelo atual se existir
-                if (currentModel) {
-                    currentModel.rotation.y += 0.01;
-                }
-
-                renderer.render(scene, camera);
-            }
-
-            function showModel(modelType) {
-                hideAllModels();
-                
-                if (modelType === 'will' && willModel) {
-                    willModel.visible = true;
-                    currentModel = willModel;
-                    console.log('Modelo Will mostrado');
-                } else if (modelType === 'bike' && bikeModel) {
-                    bikeModel.visible = true;
-                    currentModel = bikeModel;
-                    console.log('Modelo Bicicleta mostrado');
-                }
-            }
-
-            function hideAllModels() {
-                if (willModel) willModel.visible = false;
-                if (bikeModel) bikeModel.visible = false;
-                currentModel = null;
-            }
 
             function simulateLoading() {
                 let progress = 0;
@@ -534,165 +258,42 @@
                     }
                 }, 300);
             }
-
             simulateLoading();
 
-            // Configurar eventos da ligação
-            answerButton.addEventListener('click', answerCall);
-            declineButton.addEventListener('click', declineCall);
-
-            function showIncomingCall() {
-                loadingScreen.classList.add('hidden');
-                callScreen.classList.remove('hidden');
-                vibrateDevice();
-
-                const vibrationInterval = setInterval(() => {
-                    vibrateDevice();
-                }, 2000);
-
-                answerButton.addEventListener('click', () => clearInterval(vibrationInterval), { once: true });
-                declineButton.addEventListener('click', () => clearInterval(vibrationInterval), { once: true });
-            }
-
-            function answerCall() {
-                console.log('Ligação atendida');
-
-                document.querySelector('.caller-info').style.display = 'none';
-                document.querySelector('.call-controls').style.display = 'none';
-                callActiveScreen.classList.remove('hidden');
-
-                startCallTimer();
-
-                if (!audioPlayed) {
-                    audioPlayed = true;
-                    dustinAudio.play().then(() => {
-                        console.log('Áudio iniciado com sucesso');
-                    }).catch(error => {
-                        console.error('Erro ao tocar áudio:', error);
-                        setTimeout(endCall, 3000);
-                    });
-
-                    dustinAudio.addEventListener('ended', () => {
-                        console.log('Áudio terminou, encerrando ligação');
-                        endCall();
-                    }, { once: true });
-                } else {
-                    setTimeout(endCall, 1000);
-                }
-            }
-
-            function declineCall() {
-                callScreen.classList.add('hidden');
-                startCameraSession();
-            }
-
-            function startCallTimer() {
-                let seconds = 0;
-                const timerInterval = setInterval(() => {
-                    seconds++;
-                    const minutes = Math.floor(seconds / 60);
-                    const remainingSeconds = seconds % 60;
-                    callTimer.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-                }, 1000);
-
-                dustinAudio.addEventListener('ended', () => {
-                    clearInterval(timerInterval);
-                });
-            }
-
-            function endCall() {
-                callScreen.classList.add('hidden');
-                startCameraSession();
-            }
-
-            async function startCameraSession() {
-                console.log('Iniciando câmera e jogo');
-
-                loadingScreen.classList.remove('hidden');
-                loadingInfo.innerText = "Iniciando câmera...";
-
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { 
-                            facingMode: 'environment',
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
-                    });
-
-                    cameraFeed.srcObject = stream;
-                    console.log('Câmera iniciada com sucesso');
-
-                    cameraFeed.addEventListener('loadedmetadata', () => {
-                        setTimeout(() => {
-                            loadingScreen.classList.add('hidden');
-                            gameUi.style.display = 'block';
-                            initGame();
-                        }, 500);
-                    });
-
-                } catch (error) {
-                    console.error('Erro ao acessar câmera:', error);
-                    loadingInfo.innerText = "Erro ao acessar câmera. Continuando sem câmera...";
-
-                    setTimeout(() => {
-                        loadingScreen.classList.add('hidden');
-                        gameUi.style.display = 'block';
-                        initGame();
-                    }, 2000);
-                }
-            }
-
             enterButton.addEventListener('click', async () => {
-                showIncomingCall();
+                try {
+                    await sceneEl.enterAR();
+                    loadingInfo.innerText = "Iniciando AR...";
+                } catch (e) {
+                    loadingInfo.innerText = "AR não suportado. Use um navegador e celular compatíveis.";
+                    console.error(e);
+                }
+            });
+
+            sceneEl.addEventListener('enter-vr', () => {
+                loadingScreen.classList.add('hidden');
+                gameUi.style.display = 'block';
+                initGame();
             });
 
             function initGame() {
-                console.log('Inicializando jogo');
+                instructionText = document.createElement('p');
+                instructionText.id = 'instruction-text';
+                instructionText.innerText = "Iniciando geolocalização...";
+                gameUi.appendChild(instructionText);
 
-                // Inicializar Three.js
-                initThreeJS();
-                animate();
-
-                if (!instructionText) {
-                    instructionText = document.createElement('p');
-                    instructionText.id = 'instruction-text';
-                    instructionText.innerText = "Iniciando geolocalização...";
-                    gameUi.appendChild(instructionText);
-                }
-
+                // Configurar sistema de toque para coleta
                 setupTouchInteraction();
+
+                // Inicializar geolocalização
                 setupGeolocation();
-                console.log('Jogo inicializado com sucesso');
-            }
 
-            function setupTouchInteraction() {
-                if (!touchListenerAdded) {
-                    canvas.addEventListener('click', handleCanvasClick);
-                    document.addEventListener('touchstart', handleScreenTouch);
-                    document.addEventListener('click', handleScreenTouch);
-                    
-                    touchListenerAdded = true;
-                    console.log('Touch listeners adicionados');
-                }
-            }
+                // Inicializar hit-test source quando a sessão XR estiver ativa
+                const renderer = sceneEl.renderer;
+                const xrSession = renderer.xr.getSession();
 
-            function handleCanvasClick(event) {
-                if (currentObjectPlaced && currentModel && currentObjectIndex < objectsToPlace.length) {
-                    const currentObjectId = objectsToPlace[currentObjectIndex];
-                    event.preventDefault();
-                    console.log('Modelo 3D clicado:', currentObjectId);
-                    collectItem(currentObjectId);
-                }
-            }
-
-            function handleScreenTouch(event) {
-                if (gameUi.style.display === 'block' && currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
-                    const currentObjectId = objectsToPlace[currentObjectIndex];
-                    event.preventDefault();
-                    event.stopPropagation();
-                    console.log('Coletando item por toque:', currentObjectId);
-                    collectItem(currentObjectId);
+                if (xrSession) {
+                    setupHitTest(xrSession, renderer);
                 }
             }
 
@@ -708,6 +309,7 @@
                     maximumAge: 1000
                 };
 
+                // Obter posição inicial
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         currentLocation = {
@@ -723,6 +325,7 @@
                     options
                 );
 
+                // Monitorar mudanças de posição
                 geolocationWatchId = navigator.geolocation.watchPosition(
                     (position) => {
                         currentLocation = {
@@ -739,19 +342,19 @@
             }
 
             function calculateDistance(lat1, lng1, lat2, lng2) {
-                const R = 6371000;
+                const R = 6371000; // Raio da Terra em metros
                 const dLat = (lat2 - lat1) * Math.PI / 180;
                 const dLng = (lng2 - lng1) * Math.PI / 180;
                 const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                     Math.sin(dLng / 2) * Math.sin(dLng / 2);
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                return R * c;
+                return R * c; // Distância em metros
             }
 
             function vibrateDevice() {
                 if (navigator.vibrate) {
-                    navigator.vibrate(500);
+                    navigator.vibrate(500); // Vibrar por 500ms
                 }
             }
 
@@ -768,6 +371,7 @@
 
                 console.log(`Distância para ${currentObjectLocation.name}: ${distance.toFixed(1)}m`);
 
+                // Atualizar indicador de localização
                 const locationStatus = document.getElementById('location-status');
                 const distanceText = distance > 1000 ?
                     `${(distance / 1000).toFixed(1)}km` :
@@ -775,112 +379,224 @@
 
                 if (locationUnlocked[currentObjectIndex]) {
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
-                    if (!currentObjectPlaced) {
-                        instructionText.innerText = `${currentObjectLocation.name} está próximo! Toque no modelo 3D para coletá-lo.`;
-                        currentObjectPlaced = true;
-                    }
                 } else if (distance <= PROXIMITY_RADIUS) {
+                    // Jogador chegou perto o suficiente!
                     locationUnlocked[currentObjectIndex] = true;
                     canPlace = true;
-                    currentObjectPlaced = true;
 
+                    // Vibrar o dispositivo
                     vibrateDevice();
 
-                    instructionText.innerText = `🎉 ${currentObjectLocation.name} encontrado! Toque no modelo 3D para coletá-lo.`;
+                    // Atualizar instruções e status
+                    instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Procure uma superfície para encontrá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
-
-                    // Adicionar efeito visual de sucesso
-                    gameUi.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
-
-                    // Mostrar modelo 3D
-                    const currentObjectId = objectsToPlace[currentObjectIndex];
-                    showModel(currentObjectId);
-
-                    // Adicionar indicador de coleta
-                    const collectIndicator = document.createElement('div');
-                    collectIndicator.className = 'collect-indicator';
-                    collectIndicator.innerHTML = `📍 ${currentObjectLocation.name}<br>Toque no modelo 3D para coletar!`;
-                    document.body.appendChild(collectIndicator);
-
-                    setTimeout(() => {
-                        gameUi.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                        if (collectIndicator.parentNode) {
-                            collectIndicator.parentNode.removeChild(collectIndicator);
-                        }
-                    }, 5000);
 
                     console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
                 } else {
+                    // Mostrar distância atual
                     instructionText.innerText = `Vá até a localização de ${currentObjectLocation.name}`;
                     locationStatus.innerHTML = `🎯 ${currentObjectLocation.name}: ${distanceText}`;
                 }
             }
 
+            function setupTouchInteraction() {
+                // Adicionar listener para toque na tela
+                sceneEl.addEventListener('touchstart', handleTouch);
+                sceneEl.addEventListener('click', handleTouch);
+
+                // Adicionar também um listener para toque em qualquer lugar da tela como fallback
+                document.addEventListener('touchstart', handleScreenTouch);
+                document.addEventListener('click', handleScreenTouch);
+            }
+
+            function handleScreenTouch(event) {
+                // Se há um objeto colocado e visível, colete-o com qualquer toque na tela
+                if (currentObjectPlaced && currentObjectIndex < objectsToPlace.length) {
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const currentObject = document.getElementById(currentObjectId);
+
+                    if (currentObject && currentObject.getAttribute('visible') === true) {
+                        event.preventDefault();
+                        collectItem(currentObjectId);
+                    }
+                }
+            }
+
+            function handleTouch(event) {
+                if (!currentObjectPlaced || currentObjectIndex >= objectsToPlace.length) return;
+
+                // Prevenir comportamento padrão
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Obter coordenadas do toque (normalizado para -1 a 1)
+                let clientX, clientY;
+                if (event.touches && event.touches.length > 0) {
+                    clientX = event.touches[0].clientX;
+                    clientY = event.touches[0].clientY;
+                } else {
+                    clientX = event.clientX || event.detail.clientX;
+                    clientY = event.clientY || event.detail.clientY;
+                }
+
+                // Obter canvas da cena
+                const canvas = sceneEl.canvas || sceneEl.renderer.domElement;
+                const rect = canvas.getBoundingClientRect();
+
+                const mouse = {
+                    x: ((clientX - rect.left) / rect.width) * 2 - 1,
+                    y: -((clientY - rect.top) / rect.height) * 2 + 1
+                };
+
+                // Fazer raycast para verificar se tocou no objeto
+                try {
+                    const raycaster = new THREE.Raycaster();
+                    const camera = sceneEl.camera;
+
+                    raycaster.setFromCamera(mouse, camera);
+
+                    // Verificar se o raio intersecta com o objeto atual
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const currentObject = document.getElementById(currentObjectId);
+
+                    if (currentObject && currentObject.getAttribute('visible') === true) {
+                        const intersects = raycaster.intersectObject(currentObject.object3D, true);
+
+                        if (intersects.length > 0) {
+                            // Objeto foi tocado!
+                            console.log('Objeto tocado:', currentObjectId);
+                            collectItem(currentObjectId);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro no raycasting:', error);
+                    // Fallback: coletar objeto se estiver visível (para debug)
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const currentObject = document.getElementById(currentObjectId);
+                    if (currentObject && currentObject.getAttribute('visible') === true) {
+                        collectItem(currentObjectId);
+                    }
+                }
+            }
+
+            async function setupHitTest(session, renderer) {
+                try {
+                    const referenceSpace = await session.requestReferenceSpace('viewer');
+                    hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
+
+                    // Iniciar o loop de hit-test
+                    renderer.setAnimationLoop(onXRFrame);
+                } catch (error) {
+                    console.error('Erro ao configurar hit-test:', error);
+                    instructionText.innerText = "Erro ao inicializar detecção de superfície.";
+                }
+            }
+
+            function onXRFrame(timestamp, frame) {
+                if (!frame || !hitTestSource) return;
+
+                const hitTestResults = frame.getHitTestResults(hitTestSource);
+
+                if (hitTestResults.length > 0) {
+                    const hit = hitTestResults[0];
+                    const pose = hit.getPose(sceneEl.renderer.xr.getReferenceSpace());
+
+                    if (pose) {
+                        // Mostrar retícula na posição da superfície detectada
+                        reticle.setAttribute('visible', true);
+                        reticle.object3D.matrix.fromArray(pose.transform.matrix);
+                        reticle.object3D.matrix.decompose(
+                            reticle.object3D.position,
+                            reticle.object3D.quaternion,
+                            reticle.object3D.scale
+                        );
+
+                        // Colocar objeto apenas se a localização foi desbloqueada e não há objeto atual colocado
+                        if (canPlace && !currentObjectPlaced && currentObjectIndex < objectsToPlace.length && locationUnlocked[currentObjectIndex]) {
+                            placeObject(pose);
+                        }
+                    }
+                } else {
+                    // Esconder retícula quando não há superfície detectada
+                    reticle.setAttribute('visible', false);
+                }
+
+                // Continuar renderizando a cena
+                sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
+            }
+
+            function placeObject(pose) {
+                const objectId = objectsToPlace[currentObjectIndex];
+                const objectEntity = document.getElementById(objectId);
+
+                // Posicionar o objeto na superfície detectada
+                objectEntity.object3D.matrix.fromArray(pose.transform.matrix);
+                objectEntity.object3D.matrix.decompose(
+                    objectEntity.object3D.position,
+                    objectEntity.object3D.quaternion,
+                    objectEntity.object3D.scale
+                );
+
+                // Ajustar escala do objeto
+                const scale = (objectId === 'will') ? 0.4 : 0.5;
+                objectEntity.object3D.scale.set(scale, scale, scale);
+
+                // Tornar o objeto visível
+                objectEntity.setAttribute('visible', true);
+
+                // Marcar que o objeto atual foi colocado
+                currentObjectPlaced = true;
+
+                // Atualizar instruções
+                const objectName = objectId === 'will' ? 'Will Byers' : 'Bicicleta';
+                instructionText.innerText = `${objectName} encontrado! Toque na tela para coletar.`;
+
+                canPlace = false;
+            }
+
             function collectItem(id) {
                 if (collectibles[id]) return;
 
-                console.log(`Item coletado: ${id}`);
                 collectibles[id] = true;
                 foundCollectibles++;
+
+                const entity = document.getElementById(id);
+                if (entity) entity.setAttribute('visible', 'false');
 
                 const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
                 if (listItem) listItem.classList.add('found');
 
-                // Esconder modelo 3D
-                hideAllModels();
-
-                // Remover indicador de coleta se existir
-                const existingIndicator = document.querySelector('.collect-indicator');
-                if (existingIndicator) {
-                    existingIndicator.parentNode.removeChild(existingIndicator);
-                }
-
-                // Efeito visual de coleta
-                gameUi.style.backgroundColor = 'rgba(231, 38, 38, 0.8)';
-                vibrateDevice();
-
+                // Preparar para o próximo objeto
                 currentObjectIndex++;
                 currentObjectPlaced = false;
 
                 if (currentObjectIndex < objectsToPlace.length) {
+                    // Ainda há objetos para colocar
                     const nextObjectName = objectsToPlace[currentObjectIndex] === 'will' ? 'Will Byers' : 'Bicicleta';
-                    instructionText.innerText = `✅ ${id === 'will' ? 'Will Byers' : 'Bicicleta'} coletado! Agora vá até a localização de ${nextObjectName}`;
+                    instructionText.innerText = `Ótimo! Agora vá até a localização de ${nextObjectName}`;
 
-                    setTimeout(() => {
-                        gameUi.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                    }, 2000);
-
+                    // Resetar flags para o próximo objeto
                     canPlace = false;
 
+                    // Verificar se já está perto da próxima localização
                     setTimeout(() => {
                         checkProximityToLocations();
                     }, 1500);
                 } else {
-                    instructionText.innerText = `🎉 Todos os itens coletados!`;
-                    setTimeout(() => {
-                        showVictoryScreen();
-                    }, 2000);
+                    // Todos os objetos foram coletados
+                    showVictoryScreen();
                 }
             }
 
             function showVictoryScreen() {
+                // Parar monitoramento de geolocalização
                 if (geolocationWatchId) {
                     navigator.geolocation.clearWatch(geolocationWatchId);
                 }
 
-                hideAllModels();
                 gameUi.style.display = 'none';
                 victoryScreen.classList.remove('hidden');
             }
-
-            // Redimensionar canvas quando janela mudar
-            window.addEventListener('resize', () => {
-                if (camera && renderer) {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                }
-            });
         });
     </script>
 </body>
