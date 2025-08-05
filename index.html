@@ -166,6 +166,100 @@
             }
         }
 
+        .object-3d {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #e72626;
+            background: radial-gradient(circle, rgba(231, 38, 38, 0.8) 0%, rgba(231, 38, 38, 0.3) 70%);
+            box-shadow: 0 0 30px rgba(231, 38, 38, 0.6);
+            z-index: 12;
+            display: none;
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .object-3d:hover {
+            transform: scale(1.1);
+        }
+
+        .object-3d.will {
+            top: 40%;
+            left: 30%;
+            background: radial-gradient(circle, rgba(76, 175, 80, 0.8) 0%, rgba(76, 175, 80, 0.3) 70%);
+            border-color: #4CAF50;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.6);
+        }
+
+        .object-3d.bike {
+            top: 60%;
+            right: 30%;
+            background: radial-gradient(circle, rgba(255, 193, 7, 0.8) 0%, rgba(255, 193, 7, 0.3) 70%);
+            border-color: #FFC107;
+            box-shadow: 0 0 30px rgba(255, 193, 7, 0.6);
+        }
+
+        .object-3d::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            animation: innerPulse 2s ease-in-out infinite;
+        }
+
+        .object-3d.will::after {
+            content: '👦';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            z-index: 1;
+        }
+
+        .object-3d.bike::after {
+            content: '🚲';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            z-index: 1;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes innerPulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+        }
+
         #victory-screen h1 {
             font-size: 2.5em;
             color: #e72626;
@@ -335,6 +429,10 @@
 <body>
     <!-- Câmera do dispositivo -->
     <video id="camera-feed" autoplay playsinline muted></video>
+
+    <!-- Objetos 3D -->
+    <div id="will-object" class="object-3d will"></div>
+    <div id="bike-object" class="object-3d bike"></div>
 
     <!-- UI Overlay -->
     <div id="overlay">
@@ -578,6 +676,20 @@
                 if (!touchListenerAdded) {
                     document.addEventListener('touchstart', handleScreenTouch);
                     document.addEventListener('click', handleScreenTouch);
+
+                    // Adicionar listeners para objetos 3D
+                    document.getElementById('will-object').addEventListener('click', () => {
+                        if (currentObjectPlaced && objectsToPlace[currentObjectIndex] === 'will') {
+                            collectItem('will');
+                        }
+                    });
+
+                    document.getElementById('bike-object').addEventListener('click', () => {
+                        if (currentObjectPlaced && objectsToPlace[currentObjectIndex] === 'bike') {
+                            collectItem('bike');
+                        }
+                    });
+
                     touchListenerAdded = true;
                     console.log('Touch listeners adicionados');
                 }
@@ -690,10 +802,18 @@
                     // Adicionar efeito visual de sucesso
                     gameUi.style.backgroundColor = 'rgba(76, 175, 80, 0.8)';
 
+                    // Mostrar objeto 3D
+                    const currentObjectId = objectsToPlace[currentObjectIndex];
+                    const objectElement = document.getElementById(`${currentObjectId}-object`);
+                    if (objectElement) {
+                        objectElement.style.display = 'block';
+                        console.log(`Objeto 3D mostrado: ${currentObjectId}`);
+                    }
+
                     // Adicionar indicador de coleta
                     const collectIndicator = document.createElement('div');
                     collectIndicator.className = 'collect-indicator';
-                    collectIndicator.innerHTML = `📍 ${currentObjectLocation.name}<br>Toque na tela para coletar!`;
+                    collectIndicator.innerHTML = `📍 ${currentObjectLocation.name}<br>Toque no objeto ou na tela para coletar!`;
                     document.body.appendChild(collectIndicator);
 
                     setTimeout(() => {
@@ -719,6 +839,13 @@
 
                 const listItem = document.querySelector(`#collectibles-list li[data-item="${id}"]`);
                 if (listItem) listItem.classList.add('found');
+
+                // Esconder objeto 3D
+                const objectElement = document.getElementById(`${id}-object`);
+                if (objectElement) {
+                    objectElement.style.display = 'none';
+                    console.log(`Objeto 3D escondido: ${id}`);
+                }
 
                 // Remover indicador de coleta se existir
                 const existingIndicator = document.querySelector('.collect-indicator');
