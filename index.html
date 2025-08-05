@@ -258,6 +258,13 @@
             <a-asset-item id="will-model" src="assets/models/will_byers.glb"></a-asset-item>
             <a-asset-item id="bike-model" src="assets/models/bicicleta-will.glb"></a-asset-item>
             <a-asset-item id="demogorgon-model" src="assets/models/demogorgon.glb"></a-asset-item>
+            <a-asset-item id="baseball-bat-model" src="assets/models/baseball_bat.glb"></a-asset-item>
+            <a-asset-item id="compass-model" src="assets/models/compass.glb"></a-asset-item>
+            <a-asset-item id="dungeon-masters-guide-model" src="assets/models/dungeon_masters_guide.glb"></a-asset-item>
+            <a-asset-item id="machado-model" src="assets/models/machado.glb"></a-asset-item>
+            <a-asset-item id="walkie-talkie-model" src="assets/models/walkie_talkie.glb"></a-asset-item>
+            <a-asset-item id="will-mundo-invertido-model"
+                src="assets/models/will_byers_mundo_invertido.glb"></a-asset-item>
         </a-assets>
 
         <!-- Iluminação da Cena -->
@@ -274,6 +281,14 @@
         <a-entity id="will" class="collectible" gltf-model="#will-model" visible="false"></a-entity>
         <a-entity id="bike" class="collectible" gltf-model="#bike-model" visible="false"></a-entity>
         <a-entity id="demogorgon" class="collectible" gltf-model="#demogorgon-model" visible="false"></a-entity>
+        <a-entity id="baseball-bat" class="collectible" gltf-model="#baseball-bat-model" visible="false"></a-entity>
+        <a-entity id="compass" class="collectible" gltf-model="#compass-model" visible="false"></a-entity>
+        <a-entity id="dungeon-masters-guide" class="collectible" gltf-model="#dungeon-masters-guide-model"
+            visible="false"></a-entity>
+        <a-entity id="machado" class="collectible" gltf-model="#machado-model" visible="false"></a-entity>
+        <a-entity id="walkie-talkie" class="collectible" gltf-model="#walkie-talkie-model" visible="false"></a-entity>
+        <a-entity id="will-mundo-invertido" class="collectible" gltf-model="#will-mundo-invertido-model"
+            visible="false"></a-entity>
     </a-scene>
 
 
@@ -296,6 +311,12 @@
                 <li data-item="will">Will Byers</li>
                 <li data-item="bike">Bicicleta</li>
                 <li data-item="demogorgon">Demogorgon</li>
+                <li data-item="baseball-bat">Taco de Baseball</li>
+                <li data-item="compass">Bússola</li>
+                <li data-item="dungeon-masters-guide">Guia do Mestre</li>
+                <li data-item="machado">Machado</li>
+                <li data-item="walkie-talkie">Walkie-Talkie</li>
+                <li data-item="will-mundo-invertido">Will (Mundo Invertido)</li>
             </ul>
             <div id="location-info">
                 <strong>📍 Localização:</strong><br>
@@ -331,9 +352,19 @@
             const reticle = document.getElementById('reticle');
 
 
-            const collectibles = { will: false, bike: false, demogorgon: false };
+            const collectibles = {
+                will: false,
+                bike: false,
+                demogorgon: false,
+                'baseball-bat': false,
+                compass: false,
+                'dungeon-masters-guide': false,
+                machado: false,
+                'walkie-talkie': false,
+                'will-mundo-invertido': false
+            };
             let foundCollectibles = 0;
-            const objectsToPlace = ['will', 'bike', 'demogorgon'];
+            const objectsToPlace = ['will', 'bike', 'demogorgon', 'baseball-bat', 'compass', 'dungeon-masters-guide', 'machado', 'walkie-talkie', 'will-mundo-invertido'];
             let currentObjectIndex = 0;
             let currentObjectPlaced = false;
             let canPlace = false; // Inicialmente false até chegar na localização
@@ -341,13 +372,19 @@
             let instructionText = null;
             let geolocationWatchId = null;
             let currentLocation = null;
-            let locationUnlocked = [false, false, false]; // Controla se cada localização foi desbloqueada
+            let locationUnlocked = [false, false, false, false, false, false, false, false, false]; // Controla se cada localização foi desbloqueada
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
                 { lat: -27.639820466982766, lng: -48.66781802715768, name: 'Will Byers' },
                 { lat: -27.639820466982767, lng: -48.66781802715769, name: 'Bicicleta' },
-                { lat: -27.639820466982765, lng: -48.66781802715767, name: 'Demogorgon' }
+                { lat: -27.639820466982765, lng: -48.66781802715767, name: 'Demogorgon' },
+                { lat: -27.639820466982765, lng: -48.66781802715768, name: 'Taco de Baseball' },
+                { lat: -27.639820466982764, lng: -48.66781802715768, name: 'Bússola' },
+                { lat: -27.639820466982766, lng: -48.66781802715768, name: 'Guia do Mestre' },
+                { lat: -27.639820466982763, lng: -48.66781802715768, name: 'Machado' },
+                { lat: -27.639820466982762, lng: -48.66781802715768, name: 'Walkie-Talkie' },
+                { lat: -27.639820466982761, lng: -48.66781802715768, name: 'Will (Mundo Invertido)' }
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
@@ -723,6 +760,18 @@
                     scale = 0.4; // Bicicleta
                 } else if (objectId === 'demogorgon') {
                     scale = 0.8; // Demogorgon
+                } else if (objectId === 'baseball-bat') {
+                    scale = 0.6; // Taco de Baseball
+                } else if (objectId === 'compass') {
+                    scale = 0.3; // Bússola
+                } else if (objectId === 'dungeon-masters-guide') {
+                    scale = 0.4; // Guia do Mestre
+                } else if (objectId === 'machado') {
+                    scale = 0.5; // Machado
+                } else if (objectId === 'walkie-talkie') {
+                    scale = 0.4; // Walkie-Talkie
+                } else if (objectId === 'will-mundo-invertido') {
+                    scale = 0.9; // Will (Mundo Invertido)
                 } else {
                     scale = 0.5; // Padrão
                 }
@@ -742,6 +791,18 @@
                     objectName = 'Bicicleta';
                 } else if (objectId === 'demogorgon') {
                     objectName = 'Demogorgon';
+                } else if (objectId === 'baseball-bat') {
+                    objectName = 'Taco de Baseball';
+                } else if (objectId === 'compass') {
+                    objectName = 'Bússola';
+                } else if (objectId === 'dungeon-masters-guide') {
+                    objectName = 'Guia do Mestre';
+                } else if (objectId === 'machado') {
+                    objectName = 'Machado';
+                } else if (objectId === 'walkie-talkie') {
+                    objectName = 'Walkie-Talkie';
+                } else if (objectId === 'will-mundo-invertido') {
+                    objectName = 'Will (Mundo Invertido)';
                 } else {
                     objectName = 'Objeto';
                 }
@@ -776,6 +837,18 @@
                         nextObjectName = 'Bicicleta';
                     } else if (nextObjectId === 'demogorgon') {
                         nextObjectName = 'Demogorgon';
+                    } else if (nextObjectId === 'baseball-bat') {
+                        nextObjectName = 'Taco de Baseball';
+                    } else if (nextObjectId === 'compass') {
+                        nextObjectName = 'Bússola';
+                    } else if (nextObjectId === 'dungeon-masters-guide') {
+                        nextObjectName = 'Guia do Mestre';
+                    } else if (nextObjectId === 'machado') {
+                        nextObjectName = 'Machado';
+                    } else if (nextObjectId === 'walkie-talkie') {
+                        nextObjectName = 'Walkie-Talkie';
+                    } else if (nextObjectId === 'will-mundo-invertido') {
+                        nextObjectName = 'Will (Mundo Invertido)';
                     } else {
                         nextObjectName = 'próximo objeto';
                     }
