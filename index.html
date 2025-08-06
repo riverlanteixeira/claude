@@ -251,34 +251,30 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            width: 80px;
-            height: 80px;
-            margin-left: -40px;
-            margin-top: -40px;
-            background-color: rgba(231, 38, 38, 0.95);
-            border: 4px solid #fff;
+            width: 100px;
+            height: 100px;
+            margin-left: -50px;
+            margin-top: -50px;
+            background-color: #e72626;
+            border: 5px solid #ffffff;
             border-radius: 50%;
-            display: none;
             z-index: 15;
             pointer-events: none;
-            transition: transform 0.3s ease;
-            box-shadow: 0 0 20px rgba(231, 38, 38, 0.7);
-        }
-
-        #direction-arrow::before {
-            content: '↑';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 32px;
+            font-size: 40px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 30px rgba(231, 38, 38, 0.8);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
 
         #direction-arrow.visible {
-            display: block;
+            opacity: 1;
+            visibility: visible;
         }
 
         /* Animação de pulsação para a seta */
@@ -446,7 +442,7 @@
         </div>
 
         <!-- Seta direcional -->
-        <div id="direction-arrow" class="ui-element"></div>
+        <div id="direction-arrow" class="ui-element">↑</div>
 
         <!-- Debug Panel -->
         <div id="debug-panel" class="ui-element">
@@ -456,8 +452,8 @@
         <!-- Debug Buttons -->
         <div id="debug-buttons" class="ui-element">
             <button class="debug-btn" onclick="testArrowDebug()">Testar Seta</button>
+            <button class="debug-btn" onclick="hideArrow()">Esconder Seta</button>
             <button class="debug-btn" onclick="toggleDebug()">Debug On/Off</button>
-            <button class="debug-btn" onclick="forceUpdateArrow()">Forçar Seta</button>
             <button class="debug-btn" onclick="showStatus()">Status</button>
         </div>
     </div>
@@ -486,10 +482,18 @@
             updateDebugInfo('Iniciando teste da seta...');
             if (directionArrow) {
                 updateDebugInfo('Aplicando estilo de teste...');
+
+                // Forçar visibilidade
+                directionArrow.style.opacity = '1';
+                directionArrow.style.visibility = 'visible';
                 directionArrow.style.transform = 'rotate(45deg)';
                 directionArrow.classList.add('visible', 'pulsing');
-                updateDebugInfo('Seta teste aplicada - Classes: ' + directionArrow.className);
-                updateDebugInfo('Transform aplicado: ' + directionArrow.style.transform);
+
+                updateDebugInfo('Seta teste aplicada');
+                updateDebugInfo('Classes: ' + directionArrow.className);
+                updateDebugInfo('Style opacity: ' + directionArrow.style.opacity);
+                updateDebugInfo('Style visibility: ' + directionArrow.style.visibility);
+                updateDebugInfo('Transform: ' + directionArrow.style.transform);
             } else {
                 updateDebugInfo('ERRO: directionArrow é null!');
             }
@@ -534,6 +538,16 @@
             }
         }
 
+        // Função para esconder seta
+        function hideArrow() {
+            if (directionArrow) {
+                directionArrow.style.opacity = '0';
+                directionArrow.style.visibility = 'hidden';
+                directionArrow.classList.remove('visible', 'pulsing');
+                updateDebugInfo('Seta escondida');
+            }
+        }
+
         // Função para mostrar status
         function showStatus() {
             let status = 'STATUS:\n';
@@ -541,7 +555,15 @@
             status += 'currentLocation: ' + (currentLocation ? 'OK' : 'NULL') + '\n';
             status += 'debugPanel: ' + (debugPanel ? 'OK' : 'NULL') + '\n';
             status += 'objectLocations: ' + objectLocations.length + '\n';
-            status += 'currentObjectIndex: ' + currentObjectIndex;
+            status += 'currentObjectIndex: ' + currentObjectIndex + '\n';
+
+            if (directionArrow) {
+                status += '\nSETA:\n';
+                status += 'opacity: ' + directionArrow.style.opacity + '\n';
+                status += 'visibility: ' + directionArrow.style.visibility + '\n';
+                status += 'classes: ' + directionArrow.className + '\n';
+                status += 'transform: ' + directionArrow.style.transform;
+            }
 
             alert(status);
             updateDebugInfo('Status mostrado');
@@ -575,7 +597,7 @@
 
         // Função para atualizar a seta direcional
         function updateDirectionArrow(distance) {
-            updateDebugInfo(`updateDirectionArrow: dist=${distance.toFixed(1)}m, loc=${!!currentLocation}, arrow=${!!directionArrow}`);
+            updateDebugInfo(`updateDirectionArrow: dist=${distance.toFixed(1)}m`);
 
             if (!currentLocation || !directionArrow) {
                 updateDebugInfo('ERRO: sem localização ou seta');
@@ -593,6 +615,8 @@
             // Se está muito perto (9 metros), esconder a seta
             if (distance <= 9) {
                 updateDebugInfo('Escondendo seta: muito perto (≤9m)');
+                directionArrow.style.opacity = '0';
+                directionArrow.style.visibility = 'hidden';
                 directionArrow.classList.remove('visible', 'pulsing');
                 return;
             }
@@ -605,15 +629,16 @@
 
             updateDebugInfo(`Bearing: ${bearing.toFixed(1)}°`);
 
-            // Atualizar rotação da seta (subtraindo 90 graus porque a seta aponta para cima por padrão)
+            // Atualizar rotação da seta
             const rotation = bearing - 90;
             directionArrow.style.transform = `rotate(${rotation}deg)`;
 
-            updateDebugInfo(`Rotação aplicada: ${rotation.toFixed(1)}°`);
-
-            // Mostrar seta com animação
+            // Mostrar seta forçadamente
+            directionArrow.style.opacity = '1';
+            directionArrow.style.visibility = 'visible';
             directionArrow.classList.add('visible', 'pulsing');
-            updateDebugInfo(`Seta visível: ${directionArrow.classList.contains('visible')}`);
+
+            updateDebugInfo(`Seta mostrada com rotação: ${rotation.toFixed(1)}°`);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
