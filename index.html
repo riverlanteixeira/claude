@@ -443,7 +443,7 @@
         </div>
 
         <!-- Seta direcional -->
-        <div id="direction-arrow" class="ui-element">↑</div>
+        <div id="direction-arrow" class="ui-element" style="opacity: 1; visibility: visible;">↑</div>
 
         <!-- Debug Panel -->
         <div id="debug-panel" class="ui-element">
@@ -452,10 +452,14 @@
 
         <!-- Debug Buttons -->
         <div id="debug-buttons" class="ui-element">
-            <button class="debug-btn" onclick="testArrowDebug()">Testar Seta</button>
-            <button class="debug-btn" onclick="rotateArrow()">Girar Seta</button>
-            <button class="debug-btn" onclick="hideArrow()">Esconder Seta</button>
-            <button class="debug-btn" onclick="toggleDebug()">Debug On/Off</button>
+            <button class="debug-btn"
+                onclick="alert('Teste 1'); document.getElementById('direction-arrow').style.backgroundColor='blue';">Azul</button>
+            <button class="debug-btn"
+                onclick="alert('Teste 2'); document.getElementById('direction-arrow').style.transform='rotate(90deg)';">Girar</button>
+            <button class="debug-btn"
+                onclick="alert('Teste 3'); document.getElementById('direction-arrow').style.opacity='0';">Esconder</button>
+            <button class="debug-btn"
+                onclick="alert('Teste 4'); document.getElementById('direction-arrow').style.opacity='1';">Mostrar</button>
             <button class="debug-btn" onclick="showStatus()">Status</button>
         </div>
     </div>
@@ -487,12 +491,12 @@
 
                 // Limpar estilos anteriores
                 directionArrow.style.transform = '';
-                
+
                 // Forçar visibilidade
                 directionArrow.style.opacity = '1';
                 directionArrow.style.visibility = 'visible';
                 directionArrow.classList.add('visible', 'pulsing');
-                
+
                 // Aplicar rotação após um pequeno delay
                 setTimeout(() => {
                     directionArrow.style.transform = 'rotate(45deg)';
@@ -509,77 +513,64 @@
             }
         }
 
-        // Funções de debug para botões
+        // Funções de debug para botões - versão simplificada
         function testArrowDebug() {
-            updateDebugInfo('Botão Testar Seta clicado');
-            testArrow();
+            alert('Testando seta...');
+            if (directionArrow) {
+                directionArrow.style.backgroundColor = 'blue';
+                directionArrow.style.transform = 'rotate(90deg)';
+                alert('Seta deveria estar azul e rotacionada 90°');
+            } else {
+                alert('ERRO: seta não encontrada');
+            }
         }
 
         function toggleDebug() {
-            updateDebugInfo('Botão Debug clicado');
             debugEnabled = !debugEnabled;
             if (debugEnabled) {
                 debugPanel.classList.add('visible');
-                updateDebugInfo('Debug ativado');
+                alert('Debug ativado');
             } else {
                 debugPanel.classList.remove('visible');
+                alert('Debug desativado');
             }
         }
 
         function forceUpdateArrow() {
-            updateDebugInfo('Botão Forçar Seta clicado');
-            if (currentLocation && directionArrow && currentObjectIndex < objectLocations.length) {
-                const currentObjectLocation = objectLocations[currentObjectIndex];
-                if (currentObjectLocation) {
-                    const distance = calculateDistance(
-                        currentLocation.lat, currentLocation.lng,
-                        currentObjectLocation.lat, currentObjectLocation.lng
-                    );
-                    updateDebugInfo('Forçando update: ' + distance.toFixed(1) + 'm');
-                    updateDirectionArrow(distance);
-                } else {
-                    updateDebugInfo('ERRO: sem localização do objeto');
-                }
-            } else {
-                updateDebugInfo('ERRO: sem localização, seta ou objetos');
-                updateDebugInfo('currentLocation: ' + !!currentLocation);
-                updateDebugInfo('directionArrow: ' + !!directionArrow);
-                updateDebugInfo('objectLocations.length: ' + objectLocations.length);
+            alert('Forçando atualização da seta...');
+            if (directionArrow) {
+                directionArrow.style.backgroundColor = 'green';
+                directionArrow.style.transform = 'rotate(180deg)';
+                alert('Seta deveria estar verde e rotacionada 180°');
             }
         }
 
         // Função para esconder seta
         function hideArrow() {
+            alert('Escondendo seta...');
             if (directionArrow) {
                 directionArrow.style.opacity = '0';
                 directionArrow.style.visibility = 'hidden';
-                directionArrow.classList.remove('visible', 'pulsing');
-                updateDebugInfo('Seta escondida');
+                alert('Seta escondida');
+            } else {
+                alert('ERRO: seta não encontrada');
             }
         }
 
-        // Função para testar rotação da seta
+        // Função para testar rotação da seta - versão simplificada
         let testRotation = 0;
         function rotateArrow() {
+            alert('Girando seta...');
             if (directionArrow) {
-                // Mostrar seta primeiro
-                directionArrow.style.opacity = '1';
-                directionArrow.style.visibility = 'visible';
-                directionArrow.classList.add('visible', 'pulsing');
-                
-                // Aplicar rotação
                 testRotation += 45;
                 if (testRotation >= 360) testRotation = 0;
-                
+
                 directionArrow.style.transform = `rotate(${testRotation}deg)`;
-                updateDebugInfo(`Seta rotacionada para ${testRotation}°`);
-                updateDebugInfo('Transform aplicado: ' + directionArrow.style.transform);
-                
-                // Verificar se a rotação foi aplicada
-                setTimeout(() => {
-                    const computedStyle = window.getComputedStyle(directionArrow);
-                    updateDebugInfo('Transform computado: ' + computedStyle.transform);
-                }, 200);
+                directionArrow.style.backgroundColor = 'purple';
+
+                alert(`Seta rotacionada para ${testRotation}° e cor roxa`);
+            } else {
+                alert('ERRO: seta não encontrada');
             }
         }
 
@@ -587,21 +578,14 @@
         function showStatus() {
             let status = 'STATUS:\n';
             status += 'directionArrow: ' + (directionArrow ? 'OK' : 'NULL') + '\n';
-            status += 'currentLocation: ' + (currentLocation ? 'OK' : 'NULL') + '\n';
-            status += 'debugPanel: ' + (debugPanel ? 'OK' : 'NULL') + '\n';
-            status += 'objectLocations: ' + objectLocations.length + '\n';
-            status += 'currentObjectIndex: ' + currentObjectIndex + '\n';
 
             if (directionArrow) {
-                status += '\nSETA:\n';
-                status += 'opacity: ' + directionArrow.style.opacity + '\n';
-                status += 'visibility: ' + directionArrow.style.visibility + '\n';
-                status += 'classes: ' + directionArrow.className + '\n';
-                status += 'transform: ' + directionArrow.style.transform;
+                status += 'transform: ' + directionArrow.style.transform + '\n';
+                status += 'backgroundColor: ' + directionArrow.style.backgroundColor + '\n';
+                status += 'opacity: ' + directionArrow.style.opacity;
             }
 
             alert(status);
-            updateDebugInfo('Status mostrado');
         }
 
         // Função para calcular o bearing (direção) entre dois pontos
