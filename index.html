@@ -287,10 +287,12 @@
                 transform: scale(1);
                 opacity: 0.8;
             }
+
             50% {
                 transform: scale(1.1);
                 opacity: 1;
             }
+
             100% {
                 transform: scale(1);
                 opacity: 0.8;
@@ -299,6 +301,48 @@
 
         #direction-arrow.pulsing {
             animation: arrowPulse 2s infinite;
+        }
+
+        /* Debug Panel */
+        #debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 20;
+            display: none;
+        }
+
+        #debug-panel.visible {
+            display: block;
+        }
+
+        #debug-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 20;
+            display: none;
+        }
+
+        #debug-buttons.visible {
+            display: block;
+        }
+
+        .debug-btn {
+            background-color: #e72626;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -393,6 +437,18 @@
 
         <!-- Seta direcional -->
         <div id="direction-arrow" class="ui-element"></div>
+
+        <!-- Debug Panel -->
+        <div id="debug-panel" class="ui-element">
+            <div id="debug-info">Debug Info</div>
+        </div>
+
+        <!-- Debug Buttons -->
+        <div id="debug-buttons" class="ui-element">
+            <button class="debug-btn" onclick="testArrowDebug()">Testar Seta</button>
+            <button class="debug-btn" onclick="toggleDebug()">Debug On/Off</button>
+            <button class="debug-btn" onclick="forceUpdateArrow()">Forçar Seta</button>
+        </div>
     </div>
 
     <script>
@@ -427,6 +483,9 @@
             let currentLocation = null;
             let locationUnlocked = [false, false, false, false, false, false, false]; // Controla se cada localização foi desbloqueada
             let directionArrow = null;
+            let debugPanel = null;
+            let debugButtons = null;
+            let debugEnabled = false;
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
@@ -549,17 +608,23 @@
                 instructionText.innerText = "Iniciando geolocalização...";
                 gameUi.appendChild(instructionText);
 
-                // Inicializar seta direcional
+                // Inicializar seta direcional e debug
                 directionArrow = document.getElementById('direction-arrow');
-                console.log('Seta direcional inicializada:', directionArrow);
-                
+                debugPanel = document.getElementById('debug-panel');
+                debugButtons = document.getElementById('debug-buttons');
+
+                // Mostrar botões de debug
+                debugButtons.classList.add('visible');
+
+                updateDebugInfo('Seta inicializada: ' + (directionArrow ? 'OK' : 'ERRO'));
+
                 // Teste inicial da seta após 3 segundos
                 setTimeout(() => {
-                    console.log('Executando teste da seta...');
+                    updateDebugInfo('Executando teste inicial da seta...');
                     testArrow();
                 }, 3000);
 
-                // Debug: atualizar seta a cada 2 segundos
+                // Debug: atualizar seta a cada 3 segundos
                 setInterval(() => {
                     if (currentLocation && directionArrow && currentObjectIndex < objectsToPlace.length) {
                         const currentObjectLocation = objectLocations[currentObjectIndex];
@@ -568,11 +633,11 @@
                                 currentLocation.lat, currentLocation.lng,
                                 currentObjectLocation.lat, currentObjectLocation.lng
                             );
-                            console.log('Debug: atualizando seta automaticamente');
+                            updateDebugInfo('Auto-update: ' + distance.toFixed(1) + 'm');
                             updateDirectionArrow(distance);
                         }
                     }
-                }, 2000);
+                }, 3000);
 
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
@@ -608,9 +673,9 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
-                        console.log('Localização inicial obtida:', currentLocation);
+                        updateDebugInfo(`Localização obtida: ${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`);
                         checkProximityToLocations();
-                        
+
                         // Forçar atualização da seta após obter localização
                         setTimeout(() => {
                             if (currentLocation && directionArrow) {
@@ -620,14 +685,14 @@
                                         currentLocation.lat, currentLocation.lng,
                                         currentObjectLocation.lat, currentObjectLocation.lng
                                     );
-                                    console.log('Forçando atualização da seta:', distance);
+                                    updateDebugInfo('Primeira atualização da seta: ' + distance.toFixed(1) + 'm');
                                     updateDirectionArrow(distance);
                                 }
                             }
                         }, 1000);
                     },
                     (error) => {
-                        console.error('Erro ao obter localização:', error);
+                        updateDebugInfo('ERRO GPS: ' + error.message);
                         instructionText.innerText = "Erro ao acessar localização. Verifique as permissões.";
                     },
                     options
@@ -640,7 +705,7 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
-                        console.log('Localização atualizada:', currentLocation);
+                        updateDebugInfo(`GPS atualizado: ${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`);
                         checkProximityToLocations();
                     },
                     (error) => {
@@ -672,48 +737,42 @@
                 const dLng = (lng2 - lng1) * Math.PI / 180;
                 const lat1Rad = lat1 * Math.PI / 180;
                 const lat2Rad = lat2 * Math.PI / 180;
-                
+
                 const y = Math.sin(dLng) * Math.cos(lat2Rad);
-                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - 
-                         Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
-                
+                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+                    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+
                 let bearing = Math.atan2(y, x) * 180 / Math.PI;
                 return (bearing + 360) % 360; // Normalizar para 0-360 graus
             }
 
             // Função para atualizar a seta direcional
             function updateDirectionArrow(distance) {
-                console.log('updateDirectionArrow chamada:', { 
-                    distance, 
-                    currentLocation, 
-                    directionArrow: !!directionArrow,
-                    currentObjectIndex,
-                    locationUnlocked: locationUnlocked[currentObjectIndex]
-                });
-                
+                updateDebugInfo(`updateDirectionArrow: dist=${distance.toFixed(1)}m, loc=${!!currentLocation}, arrow=${!!directionArrow}`);
+
                 if (!currentLocation || !directionArrow) {
-                    console.log('Saindo: sem localização ou seta');
+                    updateDebugInfo('ERRO: sem localização ou seta');
                     return;
                 }
 
                 const currentObjectLocation = objectLocations[currentObjectIndex];
                 if (!currentObjectLocation) {
-                    console.log('Saindo: sem localização do objeto');
+                    updateDebugInfo('ERRO: sem localização do objeto');
                     return;
                 }
 
-                console.log('Objeto atual:', currentObjectLocation.name, 'Distância:', distance, 'Desbloqueado:', locationUnlocked[currentObjectIndex]);
+                updateDebugInfo(`Objeto: ${currentObjectLocation.name}, Dist: ${distance.toFixed(1)}m, Desbloq: ${locationUnlocked[currentObjectIndex]}`);
 
                 // Se está muito perto (9 metros), esconder a seta
                 if (distance <= 9) {
-                    console.log('Escondendo seta: muito perto');
+                    updateDebugInfo('Escondendo seta: muito perto (≤9m)');
                     directionArrow.classList.remove('visible', 'pulsing');
                     return;
                 }
 
                 // Se o objeto já foi desbloqueado, não mostrar seta
                 if (locationUnlocked[currentObjectIndex]) {
-                    console.log('Escondendo seta: objeto desbloqueado');
+                    updateDebugInfo('Escondendo seta: objeto desbloqueado');
                     directionArrow.classList.remove('visible', 'pulsing');
                     return;
                 }
@@ -724,31 +783,74 @@
                     currentObjectLocation.lat, currentObjectLocation.lng
                 );
 
-                console.log('Bearing calculado:', bearing);
+                updateDebugInfo(`Bearing: ${bearing.toFixed(1)}°`);
 
                 // Atualizar rotação da seta (subtraindo 90 graus porque a seta aponta para cima por padrão)
                 const rotation = bearing - 90;
                 directionArrow.style.transform = `rotate(${rotation}deg)`;
-                
-                console.log('Aplicando rotação:', rotation, 'Transform:', directionArrow.style.transform);
-                
+
+                updateDebugInfo(`Rotação aplicada: ${rotation.toFixed(1)}°`);
+
                 // Mostrar seta com animação
                 directionArrow.classList.add('visible', 'pulsing');
-                console.log('Classes da seta:', directionArrow.className);
+                updateDebugInfo(`Seta visível: ${directionArrow.classList.contains('visible')}`);
+            }
+
+            // Função para atualizar info de debug
+            function updateDebugInfo(message) {
+                if (debugPanel && debugEnabled) {
+                    const now = new Date().toLocaleTimeString();
+                    document.getElementById('debug-info').innerHTML = `[${now}] ${message}`;
+                }
+                console.log(message);
             }
 
             // Função de teste para a seta
             function testArrow() {
                 if (directionArrow) {
-                    console.log('Testando seta...');
+                    updateDebugInfo('Testando seta...');
                     directionArrow.style.transform = 'rotate(45deg)';
                     directionArrow.classList.add('visible', 'pulsing');
-                    console.log('Seta deveria estar visível agora');
+                    updateDebugInfo('Seta teste aplicada - Classes: ' + directionArrow.className);
                 }
             }
 
-            // Expor função de teste globalmente para debug
+            // Funções de debug para botões
+            function testArrowDebug() {
+                testArrow();
+            }
+
+            function toggleDebug() {
+                debugEnabled = !debugEnabled;
+                if (debugEnabled) {
+                    debugPanel.classList.add('visible');
+                    updateDebugInfo('Debug ativado');
+                } else {
+                    debugPanel.classList.remove('visible');
+                }
+            }
+
+            function forceUpdateArrow() {
+                if (currentLocation && directionArrow && currentObjectIndex < objectsToPlace.length) {
+                    const currentObjectLocation = objectLocations[currentObjectIndex];
+                    if (currentObjectLocation) {
+                        const distance = calculateDistance(
+                            currentLocation.lat, currentLocation.lng,
+                            currentObjectLocation.lat, currentObjectLocation.lng
+                        );
+                        updateDebugInfo('Forçando update: ' + distance.toFixed(1) + 'm');
+                        updateDirectionArrow(distance);
+                    }
+                } else {
+                    updateDebugInfo('Erro: sem localização ou seta');
+                }
+            }
+
+            // Expor funções globalmente
             window.testArrow = testArrow;
+            window.testArrowDebug = testArrowDebug;
+            window.toggleDebug = toggleDebug;
+            window.forceUpdateArrow = forceUpdateArrow;
 
             function checkProximityToLocations() {
                 if (!currentLocation) return;
