@@ -147,6 +147,82 @@
             border: 1px solid #e72626;
         }
 
+        /* Sistema de Navegação - Bússola */
+        #compass-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            z-index: 15;
+            display: none;
+        }
+
+        #compass-background {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 70%, transparent 100%);
+            border: 3px solid #e72626;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
+        }
+
+        #compass-needle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 40px;
+            background: linear-gradient(to top, #e72626 0%, #ff4444 100%);
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%);
+            border-radius: 2px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 10px rgba(231, 38, 38, 0.7);
+        }
+
+        #compass-needle::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 12px solid #e72626;
+        }
+
+        #compass-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: #e72626;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid #fff;
+        }
+
+        #compass-distance {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #e72626;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
         #victory-screen h1 {
             font-size: 2.5em;
             color: #e72626;
@@ -245,112 +321,6 @@
         .calling-animation {
             animation: pulse 1.5s infinite;
         }
-
-        /* Seta direcional */
-        #direction-arrow {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 100px;
-            height: 100px;
-            margin-left: -50px;
-            margin-top: -50px;
-            background-color: #e72626;
-            border: 5px solid #ffffff;
-            border-radius: 50%;
-            z-index: 15;
-            pointer-events: none;
-            font-size: 40px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            box-shadow: 0 0 30px rgba(231, 38, 38, 0.8);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            transform-origin: center center;
-        }
-
-        #direction-arrow.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Animação de pulsação para a seta */
-        @keyframes arrowPulse {
-            0% {
-                transform: scale(1);
-                opacity: 0.8;
-            }
-
-            50% {
-                transform: scale(1.1);
-                opacity: 1;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 0.8;
-            }
-        }
-
-        #direction-arrow.pulsing {
-            animation: arrowPulse 2s infinite;
-        }
-
-        /* Debug Panel */
-        #debug-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            max-width: 280px;
-            z-index: 25;
-            display: none;
-            border: 2px solid #e72626;
-        }
-
-        #debug-panel.visible {
-            display: block;
-        }
-
-        #debug-buttons {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 25;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        #debug-buttons.visible {
-            display: flex;
-        }
-
-        .debug-btn {
-            background-color: #e72626;
-            color: white;
-            border: 2px solid white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            min-width: 120px;
-            text-align: center;
-        }
-
-        .debug-btn:active {
-            background-color: #c41e1e;
-            transform: scale(0.95);
-        }
     </style>
 </head>
 
@@ -442,227 +412,17 @@
             <p>Todos os itens foram encontrados.</p>
         </div>
 
-        <!-- Seta direcional -->
-        <div id="direction-arrow" class="ui-element" style="opacity: 1; visibility: visible;">↑</div>
-
-        <!-- Debug Panel -->
-        <div id="debug-panel" class="ui-element">
-            <div id="debug-info">Debug Info</div>
-        </div>
-
-        <!-- Debug Buttons -->
-        <div id="debug-buttons" class="ui-element">
-            <button class="debug-btn"
-                onclick="alert('Teste 1'); document.getElementById('direction-arrow').style.backgroundColor='blue';">Azul</button>
-            <button class="debug-btn"
-                onclick="alert('Teste 2'); document.getElementById('direction-arrow').style.transform='rotate(90deg)';">Girar</button>
-            <button class="debug-btn"
-                onclick="alert('Teste 3'); document.getElementById('direction-arrow').style.opacity='0';">Esconder</button>
-            <button class="debug-btn"
-                onclick="alert('Teste 4'); document.getElementById('direction-arrow').style.opacity='1';">Mostrar</button>
-            <button class="debug-btn" onclick="showStatus()">Status</button>
+        <!-- Sistema de Navegação - Bússola -->
+        <div id="compass-container" class="ui-element">
+            <div id="compass-background">
+                <div id="compass-needle"></div>
+                <div id="compass-center"></div>
+            </div>
+            <div id="compass-distance">Calculando...</div>
         </div>
     </div>
 
     <script>
-        // Variáveis globais para debug
-        let debugPanel = null;
-        let debugButtons = null;
-        let debugEnabled = false;
-        let directionArrow = null;
-        let currentLocation = null;
-        let currentObjectIndex = 0;
-        let objectLocations = [];
-
-        // Função para atualizar info de debug
-        function updateDebugInfo(message) {
-            if (debugPanel && debugEnabled) {
-                const now = new Date().toLocaleTimeString();
-                document.getElementById('debug-info').innerHTML = `[${now}] ${message}`;
-            }
-            console.log(message);
-        }
-
-        // Função de teste para a seta
-        function testArrow() {
-            updateDebugInfo('Iniciando teste da seta...');
-            if (directionArrow) {
-                updateDebugInfo('Aplicando estilo de teste...');
-
-                // Limpar estilos anteriores
-                directionArrow.style.transform = '';
-
-                // Forçar visibilidade
-                directionArrow.style.opacity = '1';
-                directionArrow.style.visibility = 'visible';
-                directionArrow.classList.add('visible', 'pulsing');
-
-                // Aplicar rotação após um pequeno delay
-                setTimeout(() => {
-                    directionArrow.style.transform = 'rotate(45deg)';
-                    updateDebugInfo('Rotação 45° aplicada');
-                    updateDebugInfo('Transform final: ' + directionArrow.style.transform);
-                }, 100);
-
-                updateDebugInfo('Seta teste aplicada');
-                updateDebugInfo('Classes: ' + directionArrow.className);
-                updateDebugInfo('Style opacity: ' + directionArrow.style.opacity);
-                updateDebugInfo('Style visibility: ' + directionArrow.style.visibility);
-            } else {
-                updateDebugInfo('ERRO: directionArrow é null!');
-            }
-        }
-
-        // Funções de debug para botões - versão simplificada
-        function testArrowDebug() {
-            alert('Testando seta...');
-            if (directionArrow) {
-                directionArrow.style.backgroundColor = 'blue';
-                directionArrow.style.transform = 'rotate(90deg)';
-                alert('Seta deveria estar azul e rotacionada 90°');
-            } else {
-                alert('ERRO: seta não encontrada');
-            }
-        }
-
-        function toggleDebug() {
-            debugEnabled = !debugEnabled;
-            if (debugEnabled) {
-                debugPanel.classList.add('visible');
-                alert('Debug ativado');
-            } else {
-                debugPanel.classList.remove('visible');
-                alert('Debug desativado');
-            }
-        }
-
-        function forceUpdateArrow() {
-            alert('Forçando atualização da seta...');
-            if (directionArrow) {
-                directionArrow.style.backgroundColor = 'green';
-                directionArrow.style.transform = 'rotate(180deg)';
-                alert('Seta deveria estar verde e rotacionada 180°');
-            }
-        }
-
-        // Função para esconder seta
-        function hideArrow() {
-            alert('Escondendo seta...');
-            if (directionArrow) {
-                directionArrow.style.opacity = '0';
-                directionArrow.style.visibility = 'hidden';
-                alert('Seta escondida');
-            } else {
-                alert('ERRO: seta não encontrada');
-            }
-        }
-
-        // Função para testar rotação da seta - versão simplificada
-        let testRotation = 0;
-        function rotateArrow() {
-            alert('Girando seta...');
-            if (directionArrow) {
-                testRotation += 45;
-                if (testRotation >= 360) testRotation = 0;
-
-                directionArrow.style.transform = `rotate(${testRotation}deg)`;
-                directionArrow.style.backgroundColor = 'purple';
-
-                alert(`Seta rotacionada para ${testRotation}° e cor roxa`);
-            } else {
-                alert('ERRO: seta não encontrada');
-            }
-        }
-
-        // Função para mostrar status
-        function showStatus() {
-            let status = 'STATUS:\n';
-            status += 'directionArrow: ' + (directionArrow ? 'OK' : 'NULL') + '\n';
-
-            if (directionArrow) {
-                status += 'transform: ' + directionArrow.style.transform + '\n';
-                status += 'backgroundColor: ' + directionArrow.style.backgroundColor + '\n';
-                status += 'opacity: ' + directionArrow.style.opacity;
-            }
-
-            alert(status);
-        }
-
-        // Função para calcular o bearing (direção) entre dois pontos
-        function calculateBearing(lat1, lng1, lat2, lng2) {
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const lat1Rad = lat1 * Math.PI / 180;
-            const lat2Rad = lat2 * Math.PI / 180;
-
-            const y = Math.sin(dLng) * Math.cos(lat2Rad);
-            const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-                Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
-
-            let bearing = Math.atan2(y, x) * 180 / Math.PI;
-            return (bearing + 360) % 360; // Normalizar para 0-360 graus
-        }
-
-        // Função para calcular distância
-        function calculateDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371000; // Raio da Terra em metros
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; // Distância em metros
-        }
-
-        // Função para atualizar a seta direcional
-        function updateDirectionArrow(distance) {
-            updateDebugInfo(`updateDirectionArrow: dist=${distance.toFixed(1)}m`);
-
-            if (!currentLocation || !directionArrow) {
-                updateDebugInfo('ERRO: sem localização ou seta');
-                return;
-            }
-
-            const currentObjectLocation = objectLocations[currentObjectIndex];
-            if (!currentObjectLocation) {
-                updateDebugInfo('ERRO: sem localização do objeto');
-                return;
-            }
-
-            updateDebugInfo(`Objeto: ${currentObjectLocation.name}, Dist: ${distance.toFixed(1)}m`);
-
-            // Se está muito perto (9 metros), esconder a seta
-            if (distance <= 9) {
-                updateDebugInfo('Escondendo seta: muito perto (≤9m)');
-                directionArrow.style.opacity = '0';
-                directionArrow.style.visibility = 'hidden';
-                directionArrow.classList.remove('visible', 'pulsing');
-                return;
-            }
-
-            // Calcular direção para o objeto
-            const bearing = calculateBearing(
-                currentLocation.lat, currentLocation.lng,
-                currentObjectLocation.lat, currentObjectLocation.lng
-            );
-
-            updateDebugInfo(`Bearing: ${bearing.toFixed(1)}°`);
-
-            // Mostrar seta primeiro
-            directionArrow.style.opacity = '1';
-            directionArrow.style.visibility = 'visible';
-            directionArrow.classList.add('visible', 'pulsing');
-
-            // Aplicar rotação após mostrar
-            const rotation = bearing - 90;
-            setTimeout(() => {
-                directionArrow.style.transform = `rotate(${rotation}deg)`;
-                updateDebugInfo(`Rotação aplicada: ${rotation.toFixed(1)}°`);
-            }, 50);
-
-            updateDebugInfo(`Seta mostrada, rotação será: ${rotation.toFixed(1)}°`);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const sceneEl = document.getElementById('ar-scene');
             const loadingScreen = document.getElementById('loading-screen');
@@ -691,12 +451,13 @@
             let hitTestSource = null;
             let instructionText = null;
             let geolocationWatchId = null;
+            let currentLocation = null;
             let locationUnlocked = [false, false, false, false, false, false, false]; // Controla se cada localização foi desbloqueada
 
             // Coordenadas dos objetos (latitude, longitude)
-            objectLocations = [
+            const objectLocations = [
                 { lat: -27.639820466982767, lng: -48.66781802715769, name: 'Bicicleta' },
-                { lat: -27.639949600022337, lng: -48.667969121106196, name: 'Demogorgon' },
+                { lat: -27.639820466982765, lng: -48.66781802715767, name: 'Demogorgon' },
                 { lat: -27.639820466982765, lng: -48.66781802715768, name: 'Taco de Baseball' },
                 { lat: -27.639820466982764, lng: -48.66781802715768, name: 'Bússola' },
                 { lat: -27.639820466982763, lng: -48.66781802715768, name: 'Machado' },
@@ -705,6 +466,7 @@
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
+            const COMPASS_HIDE_RADIUS = 9; // 9 metros - bússola desaparece
 
             function simulateLoading() {
                 let progress = 0;
@@ -731,6 +493,13 @@
             const answerButton = document.getElementById('answer-button');
             const declineButton = document.getElementById('decline-button');
             let dustinAudio = null;
+
+            // Elementos da bússola
+            const compassContainer = document.getElementById('compass-container');
+            const compassNeedle = document.getElementById('compass-needle');
+            const compassDistance = document.getElementById('compass-distance');
+            let currentHeading = 0; // Direção atual do dispositivo
+            let targetBearing = 0; // Direção para o objetivo
 
             function showDustinCall() {
                 loadingScreen.classList.add('hidden');
@@ -814,42 +583,14 @@
                 instructionText.innerText = "Iniciando geolocalização...";
                 gameUi.appendChild(instructionText);
 
-                // Inicializar seta direcional e debug
-                directionArrow = document.getElementById('direction-arrow');
-                debugPanel = document.getElementById('debug-panel');
-                debugButtons = document.getElementById('debug-buttons');
-
-                // Mostrar botões de debug
-                debugButtons.classList.add('visible');
-
-                updateDebugInfo('Seta inicializada: ' + (directionArrow ? 'OK' : 'ERRO'));
-
-                // Teste inicial da seta após 3 segundos
-                setTimeout(() => {
-                    updateDebugInfo('Executando teste inicial da seta...');
-                    testArrow();
-                }, 3000);
-
-                // Debug: atualizar seta a cada 3 segundos
-                setInterval(() => {
-                    if (currentLocation && directionArrow && currentObjectIndex < objectsToPlace.length) {
-                        const currentObjectLocation = objectLocations[currentObjectIndex];
-                        if (currentObjectLocation) {
-                            const distance = calculateDistance(
-                                currentLocation.lat, currentLocation.lng,
-                                currentObjectLocation.lat, currentObjectLocation.lng
-                            );
-                            updateDebugInfo('Auto-update: ' + distance.toFixed(1) + 'm');
-                            updateDirectionArrow(distance);
-                        }
-                    }
-                }, 3000);
-
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
 
                 // Inicializar geolocalização
                 setupGeolocation();
+
+                // Inicializar bússola
+                setupCompass();
 
                 // Inicializar hit-test source quando a sessão XR estiver ativa
                 const renderer = sceneEl.renderer;
@@ -879,26 +620,10 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
-                        updateDebugInfo(`Localização obtida: ${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`);
                         checkProximityToLocations();
-
-                        // Forçar atualização da seta após obter localização
-                        setTimeout(() => {
-                            if (currentLocation && directionArrow) {
-                                const currentObjectLocation = objectLocations[currentObjectIndex];
-                                if (currentObjectLocation) {
-                                    const distance = calculateDistance(
-                                        currentLocation.lat, currentLocation.lng,
-                                        currentObjectLocation.lat, currentObjectLocation.lng
-                                    );
-                                    updateDebugInfo('Primeira atualização da seta: ' + distance.toFixed(1) + 'm');
-                                    updateDirectionArrow(distance);
-                                }
-                            }
-                        }, 1000);
                     },
                     (error) => {
-                        updateDebugInfo('ERRO GPS: ' + error.message);
+                        console.error('Erro ao obter localização:', error);
                         instructionText.innerText = "Erro ao acessar localização. Verifique as permissões.";
                     },
                     options
@@ -911,7 +636,6 @@
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
-                        updateDebugInfo(`GPS atualizado: ${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`);
                         checkProximityToLocations();
                     },
                     (error) => {
@@ -921,15 +645,22 @@
                 );
             }
 
-
+            function calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371000; // Raio da Terra em metros
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c; // Distância em metros
+            }
 
             function vibrateDevice() {
                 if (navigator.vibrate) {
                     navigator.vibrate(500); // Vibrar por 500ms
                 }
             }
-
-
 
             function checkProximityToLocations() {
                 if (!currentLocation) return;
@@ -944,8 +675,14 @@
 
                 console.log(`Distância para ${currentObjectLocation.name}: ${distance.toFixed(1)}m`);
 
-                // Atualizar seta direcional
-                updateDirectionArrow(distance);
+                // Calcular direção para o objetivo
+                targetBearing = calculateBearing(
+                    currentLocation.lat, currentLocation.lng,
+                    currentObjectLocation.lat, currentObjectLocation.lng
+                );
+
+                // Atualizar bússola
+                updateCompass(distance);
 
                 // Atualizar indicador de localização
                 const locationStatus = document.getElementById('location-status');
@@ -955,6 +692,8 @@
 
                 if (locationUnlocked[currentObjectIndex]) {
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
+                    // Esconder bússola quando objeto está desbloqueado
+                    hideCompass();
                 } else if (distance <= PROXIMITY_RADIUS) {
                     // Jogador chegou perto o suficiente!
                     locationUnlocked[currentObjectIndex] = true;
@@ -967,11 +706,19 @@
                     instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Procure uma superfície para encontrá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
 
+                    // Esconder bússola
+                    hideCompass();
+
                     console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
                 } else {
                     // Mostrar distância atual
                     instructionText.innerText = `Vá até a localização de ${currentObjectLocation.name}`;
                     locationStatus.innerHTML = `🎯 ${currentObjectLocation.name}: ${distanceText}`;
+
+                    // Mostrar bússola se não estiver muito perto
+                    if (distance > COMPASS_HIDE_RADIUS) {
+                        showCompass();
+                    }
                 }
             }
 
@@ -1206,20 +953,29 @@
                     // Resetar flags para o próximo objeto
                     canPlace = false;
 
-                    // Mostrar seta para o próximo objeto após um breve delay
-                    setTimeout(() => {
-                        checkProximityToLocations();
-                        // Forçar atualização da seta para o próximo objeto
-                        if (currentLocation) {
-                            const nextObjectLocation = objectLocations[currentObjectIndex];
-                            if (nextObjectLocation) {
-                                const distance = calculateDistance(
+                    // Mostrar bússola para o próximo objeto se houver localização atual
+                    if (currentLocation) {
+                        const nextObjectLocation = objectLocations[currentObjectIndex];
+                        if (nextObjectLocation) {
+                            const distance = calculateDistance(
+                                currentLocation.lat, currentLocation.lng,
+                                nextObjectLocation.lat, nextObjectLocation.lng
+                            );
+
+                            if (distance > COMPASS_HIDE_RADIUS) {
+                                targetBearing = calculateBearing(
                                     currentLocation.lat, currentLocation.lng,
                                     nextObjectLocation.lat, nextObjectLocation.lng
                                 );
-                                updateDirectionArrow(distance);
+                                updateCompass(distance);
+                                showCompass();
                             }
                         }
+                    }
+
+                    // Verificar se já está perto da próxima localização
+                    setTimeout(() => {
+                        checkProximityToLocations();
                     }, 1500);
                 } else {
                     // Todos os objetos foram coletados
@@ -1228,18 +984,81 @@
             }
 
             function showVictoryScreen() {
+                // Esconder bússola
+                hideCompass();
+
                 // Parar monitoramento de geolocalização
                 if (geolocationWatchId) {
                     navigator.geolocation.clearWatch(geolocationWatchId);
                 }
 
-                // Esconder seta direcional
-                if (directionArrow) {
-                    directionArrow.classList.remove('visible', 'pulsing');
-                }
-
                 gameUi.style.display = 'none';
                 victoryScreen.classList.remove('hidden');
+            }
+
+            // ===== SISTEMA DE NAVEGAÇÃO - BÚSSOLA =====
+
+            function setupCompass() {
+                // Verificar se o dispositivo suporta orientação
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                } else {
+                    console.warn('Orientação do dispositivo não suportada');
+                }
+            }
+
+            function handleOrientation(event) {
+                // Obter direção do dispositivo (0-360 graus)
+                let alpha = event.alpha;
+                if (alpha !== null) {
+                    currentHeading = alpha;
+                    updateCompassNeedle();
+                }
+            }
+
+            function calculateBearing(lat1, lng1, lat2, lng2) {
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const lat1Rad = lat1 * Math.PI / 180;
+                const lat2Rad = lat2 * Math.PI / 180;
+
+                const y = Math.sin(dLng) * Math.cos(lat2Rad);
+                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+                    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+
+                let bearing = Math.atan2(y, x) * 180 / Math.PI;
+                return (bearing + 360) % 360; // Normalizar para 0-360
+            }
+
+            function updateCompass(distance) {
+                // Atualizar distância
+                const distanceText = distance > 1000 ?
+                    `${(distance / 1000).toFixed(1)}km` :
+                    `${Math.round(distance)}m`;
+                compassDistance.textContent = distanceText;
+
+                // Atualizar direção da agulha
+                updateCompassNeedle();
+            }
+
+            function updateCompassNeedle() {
+                // Calcular diferença entre direção do dispositivo e direção do objetivo
+                let needleRotation = targetBearing - currentHeading;
+
+                // Normalizar rotação
+                if (needleRotation > 180) needleRotation -= 360;
+                if (needleRotation < -180) needleRotation += 360;
+
+                // Aplicar rotação à agulha
+                compassNeedle.style.transform = `translate(-50%, -100%) rotate(${needleRotation}deg)`;
+            }
+
+            function showCompass() {
+                compassContainer.style.display = 'block';
+            }
+
+            function hideCompass() {
+                compassContainer.style.display = 'none';
             }
         });
     </script>
