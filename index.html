@@ -269,7 +269,8 @@
             box-shadow: 0 0 30px rgba(231, 38, 38, 0.8);
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transform-origin: center center;
         }
 
         #direction-arrow.visible {
@@ -452,6 +453,7 @@
         <!-- Debug Buttons -->
         <div id="debug-buttons" class="ui-element">
             <button class="debug-btn" onclick="testArrowDebug()">Testar Seta</button>
+            <button class="debug-btn" onclick="rotateArrow()">Girar Seta</button>
             <button class="debug-btn" onclick="hideArrow()">Esconder Seta</button>
             <button class="debug-btn" onclick="toggleDebug()">Debug On/Off</button>
             <button class="debug-btn" onclick="showStatus()">Status</button>
@@ -483,17 +485,25 @@
             if (directionArrow) {
                 updateDebugInfo('Aplicando estilo de teste...');
 
+                // Limpar estilos anteriores
+                directionArrow.style.transform = '';
+                
                 // Forçar visibilidade
                 directionArrow.style.opacity = '1';
                 directionArrow.style.visibility = 'visible';
-                directionArrow.style.transform = 'rotate(45deg)';
                 directionArrow.classList.add('visible', 'pulsing');
+                
+                // Aplicar rotação após um pequeno delay
+                setTimeout(() => {
+                    directionArrow.style.transform = 'rotate(45deg)';
+                    updateDebugInfo('Rotação 45° aplicada');
+                    updateDebugInfo('Transform final: ' + directionArrow.style.transform);
+                }, 100);
 
                 updateDebugInfo('Seta teste aplicada');
                 updateDebugInfo('Classes: ' + directionArrow.className);
                 updateDebugInfo('Style opacity: ' + directionArrow.style.opacity);
                 updateDebugInfo('Style visibility: ' + directionArrow.style.visibility);
-                updateDebugInfo('Transform: ' + directionArrow.style.transform);
             } else {
                 updateDebugInfo('ERRO: directionArrow é null!');
             }
@@ -545,6 +555,31 @@
                 directionArrow.style.visibility = 'hidden';
                 directionArrow.classList.remove('visible', 'pulsing');
                 updateDebugInfo('Seta escondida');
+            }
+        }
+
+        // Função para testar rotação da seta
+        let testRotation = 0;
+        function rotateArrow() {
+            if (directionArrow) {
+                // Mostrar seta primeiro
+                directionArrow.style.opacity = '1';
+                directionArrow.style.visibility = 'visible';
+                directionArrow.classList.add('visible', 'pulsing');
+                
+                // Aplicar rotação
+                testRotation += 45;
+                if (testRotation >= 360) testRotation = 0;
+                
+                directionArrow.style.transform = `rotate(${testRotation}deg)`;
+                updateDebugInfo(`Seta rotacionada para ${testRotation}°`);
+                updateDebugInfo('Transform aplicado: ' + directionArrow.style.transform);
+                
+                // Verificar se a rotação foi aplicada
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(directionArrow);
+                    updateDebugInfo('Transform computado: ' + computedStyle.transform);
+                }, 200);
             }
         }
 
@@ -629,16 +664,19 @@
 
             updateDebugInfo(`Bearing: ${bearing.toFixed(1)}°`);
 
-            // Atualizar rotação da seta
-            const rotation = bearing - 90;
-            directionArrow.style.transform = `rotate(${rotation}deg)`;
-
-            // Mostrar seta forçadamente
+            // Mostrar seta primeiro
             directionArrow.style.opacity = '1';
             directionArrow.style.visibility = 'visible';
             directionArrow.classList.add('visible', 'pulsing');
 
-            updateDebugInfo(`Seta mostrada com rotação: ${rotation.toFixed(1)}°`);
+            // Aplicar rotação após mostrar
+            const rotation = bearing - 90;
+            setTimeout(() => {
+                directionArrow.style.transform = `rotate(${rotation}deg)`;
+                updateDebugInfo(`Rotação aplicada: ${rotation.toFixed(1)}°`);
+            }, 50);
+
+            updateDebugInfo(`Seta mostrada, rotação será: ${rotation.toFixed(1)}°`);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
