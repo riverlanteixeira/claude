@@ -245,6 +245,59 @@
         .calling-animation {
             animation: pulse 1.5s infinite;
         }
+
+        /* Seta direcional */
+        #direction-arrow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            margin-left: -30px;
+            margin-top: -30px;
+            background-color: rgba(231, 38, 38, 0.9);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: none;
+            z-index: 15;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        #direction-arrow::before {
+            content: '↑';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        #direction-arrow.visible {
+            display: block;
+        }
+
+        /* Animação de pulsação para a seta */
+        @keyframes arrowPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+        }
+
+        #direction-arrow.pulsing {
+            animation: arrowPulse 2s infinite;
+        }
     </style>
 </head>
 
@@ -335,6 +388,9 @@
             <h1>Você Conseguiu!</h1>
             <p>Todos os itens foram encontrados.</p>
         </div>
+
+        <!-- Seta direcional -->
+        <div id="direction-arrow" class="ui-element"></div>
     </div>
 
     <script>
@@ -368,11 +424,12 @@
             let geolocationWatchId = null;
             let currentLocation = null;
             let locationUnlocked = [false, false, false, false, false, false, false]; // Controla se cada localização foi desbloqueada
+            let directionArrow = null;
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
                 { lat: -27.639820466982767, lng: -48.66781802715769, name: 'Bicicleta' },
-                { lat: -27.639820466982765, lng: -48.66781802715767, name: 'Demogorgon' },
+                { lat: -27.639949600022337, lng: -48.667969121106196, name: 'Demogorgon' },
                 { lat: -27.639820466982765, lng: -48.66781802715768, name: 'Taco de Baseball' },
                 { lat: -27.639820466982764, lng: -48.66781802715768, name: 'Bússola' },
                 { lat: -27.639820466982763, lng: -48.66781802715768, name: 'Machado' },
@@ -490,6 +547,9 @@
                 instructionText.innerText = "Iniciando geolocalização...";
                 gameUi.appendChild(instructionText);
 
+                // Inicializar seta direcional
+                directionArrow = document.getElementById('direction-arrow');
+
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
 
@@ -566,6 +626,52 @@
                 }
             }
 
+            // Função para calcular o bearing (direção) entre dois pontos
+            function calculateBearing(lat1, lng1, lat2, lng2) {
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const lat1Rad = lat1 * Math.PI / 180;
+                const lat2Rad = lat2 * Math.PI / 180;
+                
+                const y = Math.sin(dLng) * Math.cos(lat2Rad);
+                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - 
+                         Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+                
+                let bearing = Math.atan2(y, x) * 180 / Math.PI;
+                return (bearing + 360) % 360; // Normalizar para 0-360 graus
+            }
+
+            // Função para atualizar a seta direcional
+            function updateDirectionArrow(distance) {
+                if (!currentLocation || !directionArrow) return;
+
+                const currentObjectLocation = objectLocations[currentObjectIndex];
+                if (!currentObjectLocation) return;
+
+                // Se está muito perto (9 metros), esconder a seta
+                if (distance <= 9) {
+                    directionArrow.classList.remove('visible', 'pulsing');
+                    return;
+                }
+
+                // Se o objeto já foi desbloqueado, não mostrar seta
+                if (locationUnlocked[currentObjectIndex]) {
+                    directionArrow.classList.remove('visible', 'pulsing');
+                    return;
+                }
+
+                // Calcular direção para o objeto
+                const bearing = calculateBearing(
+                    currentLocation.lat, currentLocation.lng,
+                    currentObjectLocation.lat, currentObjectLocation.lng
+                );
+
+                // Atualizar rotação da seta (subtraindo 90 graus porque a seta aponta para cima por padrão)
+                directionArrow.style.transform = `rotate(${bearing - 90}deg)`;
+                
+                // Mostrar seta com animação
+                directionArrow.classList.add('visible', 'pulsing');
+            }
+
             function checkProximityToLocations() {
                 if (!currentLocation) return;
 
@@ -578,6 +684,9 @@
                 );
 
                 console.log(`Distância para ${currentObjectLocation.name}: ${distance.toFixed(1)}m`);
+
+                // Atualizar seta direcional
+                updateDirectionArrow(distance);
 
                 // Atualizar indicador de localização
                 const locationStatus = document.getElementById('location-status');
@@ -838,9 +947,20 @@
                     // Resetar flags para o próximo objeto
                     canPlace = false;
 
-                    // Verificar se já está perto da próxima localização
+                    // Mostrar seta para o próximo objeto após um breve delay
                     setTimeout(() => {
                         checkProximityToLocations();
+                        // Forçar atualização da seta para o próximo objeto
+                        if (currentLocation) {
+                            const nextObjectLocation = objectLocations[currentObjectIndex];
+                            if (nextObjectLocation) {
+                                const distance = calculateDistance(
+                                    currentLocation.lat, currentLocation.lng,
+                                    nextObjectLocation.lat, nextObjectLocation.lng
+                                );
+                                updateDirectionArrow(distance);
+                            }
+                        }
                     }, 1500);
                 } else {
                     // Todos os objetos foram coletados
@@ -852,6 +972,11 @@
                 // Parar monitoramento de geolocalização
                 if (geolocationWatchId) {
                     navigator.geolocation.clearWatch(geolocationWatchId);
+                }
+
+                // Esconder seta direcional
+                if (directionArrow) {
+                    directionArrow.classList.remove('visible', 'pulsing');
                 }
 
                 gameUi.style.display = 'none';
