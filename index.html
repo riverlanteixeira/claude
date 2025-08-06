@@ -306,16 +306,17 @@
         /* Debug Panel */
         #debug-panel {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.9);
             color: #fff;
-            padding: 10px;
+            padding: 15px;
             border-radius: 8px;
-            font-size: 12px;
-            max-width: 300px;
-            z-index: 20;
+            font-size: 14px;
+            max-width: 280px;
+            z-index: 25;
             display: none;
+            border: 2px solid #e72626;
         }
 
         #debug-panel.visible {
@@ -326,23 +327,32 @@
             position: fixed;
             bottom: 20px;
             left: 20px;
-            z-index: 20;
-            display: none;
+            z-index: 25;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         #debug-buttons.visible {
-            display: block;
+            display: flex;
         }
 
         .debug-btn {
             background-color: #e72626;
             color: white;
-            border: none;
-            padding: 8px 12px;
-            margin: 2px;
-            border-radius: 4px;
-            font-size: 12px;
+            border: 2px solid white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
             cursor: pointer;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .debug-btn:active {
+            background-color: #c41e1e;
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -448,10 +458,164 @@
             <button class="debug-btn" onclick="testArrowDebug()">Testar Seta</button>
             <button class="debug-btn" onclick="toggleDebug()">Debug On/Off</button>
             <button class="debug-btn" onclick="forceUpdateArrow()">Forçar Seta</button>
+            <button class="debug-btn" onclick="showStatus()">Status</button>
         </div>
     </div>
 
     <script>
+        // Variáveis globais para debug
+        let debugPanel = null;
+        let debugButtons = null;
+        let debugEnabled = false;
+        let directionArrow = null;
+        let currentLocation = null;
+        let currentObjectIndex = 0;
+        let objectLocations = [];
+
+        // Função para atualizar info de debug
+        function updateDebugInfo(message) {
+            if (debugPanel && debugEnabled) {
+                const now = new Date().toLocaleTimeString();
+                document.getElementById('debug-info').innerHTML = `[${now}] ${message}`;
+            }
+            console.log(message);
+        }
+
+        // Função de teste para a seta
+        function testArrow() {
+            updateDebugInfo('Iniciando teste da seta...');
+            if (directionArrow) {
+                updateDebugInfo('Aplicando estilo de teste...');
+                directionArrow.style.transform = 'rotate(45deg)';
+                directionArrow.classList.add('visible', 'pulsing');
+                updateDebugInfo('Seta teste aplicada - Classes: ' + directionArrow.className);
+                updateDebugInfo('Transform aplicado: ' + directionArrow.style.transform);
+            } else {
+                updateDebugInfo('ERRO: directionArrow é null!');
+            }
+        }
+
+        // Funções de debug para botões
+        function testArrowDebug() {
+            updateDebugInfo('Botão Testar Seta clicado');
+            testArrow();
+        }
+
+        function toggleDebug() {
+            updateDebugInfo('Botão Debug clicado');
+            debugEnabled = !debugEnabled;
+            if (debugEnabled) {
+                debugPanel.classList.add('visible');
+                updateDebugInfo('Debug ativado');
+            } else {
+                debugPanel.classList.remove('visible');
+            }
+        }
+
+        function forceUpdateArrow() {
+            updateDebugInfo('Botão Forçar Seta clicado');
+            if (currentLocation && directionArrow && currentObjectIndex < objectLocations.length) {
+                const currentObjectLocation = objectLocations[currentObjectIndex];
+                if (currentObjectLocation) {
+                    const distance = calculateDistance(
+                        currentLocation.lat, currentLocation.lng,
+                        currentObjectLocation.lat, currentObjectLocation.lng
+                    );
+                    updateDebugInfo('Forçando update: ' + distance.toFixed(1) + 'm');
+                    updateDirectionArrow(distance);
+                } else {
+                    updateDebugInfo('ERRO: sem localização do objeto');
+                }
+            } else {
+                updateDebugInfo('ERRO: sem localização, seta ou objetos');
+                updateDebugInfo('currentLocation: ' + !!currentLocation);
+                updateDebugInfo('directionArrow: ' + !!directionArrow);
+                updateDebugInfo('objectLocations.length: ' + objectLocations.length);
+            }
+        }
+
+        // Função para mostrar status
+        function showStatus() {
+            let status = 'STATUS:\n';
+            status += 'directionArrow: ' + (directionArrow ? 'OK' : 'NULL') + '\n';
+            status += 'currentLocation: ' + (currentLocation ? 'OK' : 'NULL') + '\n';
+            status += 'debugPanel: ' + (debugPanel ? 'OK' : 'NULL') + '\n';
+            status += 'objectLocations: ' + objectLocations.length + '\n';
+            status += 'currentObjectIndex: ' + currentObjectIndex;
+
+            alert(status);
+            updateDebugInfo('Status mostrado');
+        }
+
+        // Função para calcular o bearing (direção) entre dois pontos
+        function calculateBearing(lat1, lng1, lat2, lng2) {
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const lat1Rad = lat1 * Math.PI / 180;
+            const lat2Rad = lat2 * Math.PI / 180;
+
+            const y = Math.sin(dLng) * Math.cos(lat2Rad);
+            const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+                Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+
+            let bearing = Math.atan2(y, x) * 180 / Math.PI;
+            return (bearing + 360) % 360; // Normalizar para 0-360 graus
+        }
+
+        // Função para calcular distância
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000; // Raio da Terra em metros
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distância em metros
+        }
+
+        // Função para atualizar a seta direcional
+        function updateDirectionArrow(distance) {
+            updateDebugInfo(`updateDirectionArrow: dist=${distance.toFixed(1)}m, loc=${!!currentLocation}, arrow=${!!directionArrow}`);
+
+            if (!currentLocation || !directionArrow) {
+                updateDebugInfo('ERRO: sem localização ou seta');
+                return;
+            }
+
+            const currentObjectLocation = objectLocations[currentObjectIndex];
+            if (!currentObjectLocation) {
+                updateDebugInfo('ERRO: sem localização do objeto');
+                return;
+            }
+
+            updateDebugInfo(`Objeto: ${currentObjectLocation.name}, Dist: ${distance.toFixed(1)}m`);
+
+            // Se está muito perto (9 metros), esconder a seta
+            if (distance <= 9) {
+                updateDebugInfo('Escondendo seta: muito perto (≤9m)');
+                directionArrow.classList.remove('visible', 'pulsing');
+                return;
+            }
+
+            // Calcular direção para o objeto
+            const bearing = calculateBearing(
+                currentLocation.lat, currentLocation.lng,
+                currentObjectLocation.lat, currentObjectLocation.lng
+            );
+
+            updateDebugInfo(`Bearing: ${bearing.toFixed(1)}°`);
+
+            // Atualizar rotação da seta (subtraindo 90 graus porque a seta aponta para cima por padrão)
+            const rotation = bearing - 90;
+            directionArrow.style.transform = `rotate(${rotation}deg)`;
+
+            updateDebugInfo(`Rotação aplicada: ${rotation.toFixed(1)}°`);
+
+            // Mostrar seta com animação
+            directionArrow.classList.add('visible', 'pulsing');
+            updateDebugInfo(`Seta visível: ${directionArrow.classList.contains('visible')}`);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const sceneEl = document.getElementById('ar-scene');
             const loadingScreen = document.getElementById('loading-screen');
@@ -480,15 +644,10 @@
             let hitTestSource = null;
             let instructionText = null;
             let geolocationWatchId = null;
-            let currentLocation = null;
             let locationUnlocked = [false, false, false, false, false, false, false]; // Controla se cada localização foi desbloqueada
-            let directionArrow = null;
-            let debugPanel = null;
-            let debugButtons = null;
-            let debugEnabled = false;
 
             // Coordenadas dos objetos (latitude, longitude)
-            const objectLocations = [
+            objectLocations = [
                 { lat: -27.639820466982767, lng: -48.66781802715769, name: 'Bicicleta' },
                 { lat: -27.639949600022337, lng: -48.667969121106196, name: 'Demogorgon' },
                 { lat: -27.639820466982765, lng: -48.66781802715768, name: 'Taco de Baseball' },
@@ -715,16 +874,7 @@
                 );
             }
 
-            function calculateDistance(lat1, lng1, lat2, lng2) {
-                const R = 6371000; // Raio da Terra em metros
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLng = (lng2 - lng1) * Math.PI / 180;
-                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                return R * c; // Distância em metros
-            }
+
 
             function vibrateDevice() {
                 if (navigator.vibrate) {
@@ -732,125 +882,7 @@
                 }
             }
 
-            // Função para calcular o bearing (direção) entre dois pontos
-            function calculateBearing(lat1, lng1, lat2, lng2) {
-                const dLng = (lng2 - lng1) * Math.PI / 180;
-                const lat1Rad = lat1 * Math.PI / 180;
-                const lat2Rad = lat2 * Math.PI / 180;
 
-                const y = Math.sin(dLng) * Math.cos(lat2Rad);
-                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-                    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
-
-                let bearing = Math.atan2(y, x) * 180 / Math.PI;
-                return (bearing + 360) % 360; // Normalizar para 0-360 graus
-            }
-
-            // Função para atualizar a seta direcional
-            function updateDirectionArrow(distance) {
-                updateDebugInfo(`updateDirectionArrow: dist=${distance.toFixed(1)}m, loc=${!!currentLocation}, arrow=${!!directionArrow}`);
-
-                if (!currentLocation || !directionArrow) {
-                    updateDebugInfo('ERRO: sem localização ou seta');
-                    return;
-                }
-
-                const currentObjectLocation = objectLocations[currentObjectIndex];
-                if (!currentObjectLocation) {
-                    updateDebugInfo('ERRO: sem localização do objeto');
-                    return;
-                }
-
-                updateDebugInfo(`Objeto: ${currentObjectLocation.name}, Dist: ${distance.toFixed(1)}m, Desbloq: ${locationUnlocked[currentObjectIndex]}`);
-
-                // Se está muito perto (9 metros), esconder a seta
-                if (distance <= 9) {
-                    updateDebugInfo('Escondendo seta: muito perto (≤9m)');
-                    directionArrow.classList.remove('visible', 'pulsing');
-                    return;
-                }
-
-                // Se o objeto já foi desbloqueado, não mostrar seta
-                if (locationUnlocked[currentObjectIndex]) {
-                    updateDebugInfo('Escondendo seta: objeto desbloqueado');
-                    directionArrow.classList.remove('visible', 'pulsing');
-                    return;
-                }
-
-                // Calcular direção para o objeto
-                const bearing = calculateBearing(
-                    currentLocation.lat, currentLocation.lng,
-                    currentObjectLocation.lat, currentObjectLocation.lng
-                );
-
-                updateDebugInfo(`Bearing: ${bearing.toFixed(1)}°`);
-
-                // Atualizar rotação da seta (subtraindo 90 graus porque a seta aponta para cima por padrão)
-                const rotation = bearing - 90;
-                directionArrow.style.transform = `rotate(${rotation}deg)`;
-
-                updateDebugInfo(`Rotação aplicada: ${rotation.toFixed(1)}°`);
-
-                // Mostrar seta com animação
-                directionArrow.classList.add('visible', 'pulsing');
-                updateDebugInfo(`Seta visível: ${directionArrow.classList.contains('visible')}`);
-            }
-
-            // Função para atualizar info de debug
-            function updateDebugInfo(message) {
-                if (debugPanel && debugEnabled) {
-                    const now = new Date().toLocaleTimeString();
-                    document.getElementById('debug-info').innerHTML = `[${now}] ${message}`;
-                }
-                console.log(message);
-            }
-
-            // Função de teste para a seta
-            function testArrow() {
-                if (directionArrow) {
-                    updateDebugInfo('Testando seta...');
-                    directionArrow.style.transform = 'rotate(45deg)';
-                    directionArrow.classList.add('visible', 'pulsing');
-                    updateDebugInfo('Seta teste aplicada - Classes: ' + directionArrow.className);
-                }
-            }
-
-            // Funções de debug para botões
-            function testArrowDebug() {
-                testArrow();
-            }
-
-            function toggleDebug() {
-                debugEnabled = !debugEnabled;
-                if (debugEnabled) {
-                    debugPanel.classList.add('visible');
-                    updateDebugInfo('Debug ativado');
-                } else {
-                    debugPanel.classList.remove('visible');
-                }
-            }
-
-            function forceUpdateArrow() {
-                if (currentLocation && directionArrow && currentObjectIndex < objectsToPlace.length) {
-                    const currentObjectLocation = objectLocations[currentObjectIndex];
-                    if (currentObjectLocation) {
-                        const distance = calculateDistance(
-                            currentLocation.lat, currentLocation.lng,
-                            currentObjectLocation.lat, currentObjectLocation.lng
-                        );
-                        updateDebugInfo('Forçando update: ' + distance.toFixed(1) + 'm');
-                        updateDirectionArrow(distance);
-                    }
-                } else {
-                    updateDebugInfo('Erro: sem localização ou seta');
-                }
-            }
-
-            // Expor funções globalmente
-            window.testArrow = testArrow;
-            window.testArrowDebug = testArrowDebug;
-            window.toggleDebug = toggleDebug;
-            window.forceUpdateArrow = forceUpdateArrow;
 
             function checkProximityToLocations() {
                 if (!currentLocation) return;
