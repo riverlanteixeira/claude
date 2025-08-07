@@ -147,26 +147,27 @@
             border: 1px solid #e72626;
         }
 
-        /* Sistema de Navegação - Bússola */
+        /* Sistema de indicadores direcionais */
         #compass-container {
             position: fixed;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            right: 20px;
+            transform: translateY(-50%);
             width: 120px;
             height: 120px;
-            z-index: 15;
-            display: none;
-        }
-
-        #compass-background {
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 70%, transparent 100%);
+            background: rgba(0, 0, 0, 0.8);
             border: 3px solid #e72626;
             border-radius: 50%;
+            display: none;
+            z-index: 15;
+        }
+
+        #compass {
+            width: 100%;
+            height: 100%;
             position: relative;
-            box-shadow: 0 0 20px rgba(231, 38, 38, 0.5);
+            border-radius: 50%;
+            overflow: hidden;
         }
 
         #compass-needle {
@@ -175,26 +176,12 @@
             left: 50%;
             width: 4px;
             height: 40px;
-            background: linear-gradient(to top, #e72626 0%, #ff4444 100%);
+            background: linear-gradient(to bottom, #e72626 0%, #ff4444 50%, #e72626 100%);
             transform-origin: bottom center;
             transform: translate(-50%, -100%);
             border-radius: 2px;
-            transition: transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-            box-shadow: 0 0 10px rgba(231, 38, 38, 0.7);
-            will-change: transform;
-        }
-
-        #compass-needle::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-bottom: 12px solid #e72626;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 10px rgba(231, 38, 38, 0.5);
         }
 
         #compass-center {
@@ -203,25 +190,146 @@
             left: 50%;
             width: 12px;
             height: 12px;
-            background: #e72626;
+            background: #fff;
+            border: 2px solid #e72626;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            border: 2px solid #fff;
+            z-index: 2;
         }
 
-        #compass-distance {
+        #compass-labels {
             position: absolute;
-            bottom: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #e72626;
-            font-size: 0.9em;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: #fff;
+            font-size: 12px;
             font-weight: bold;
+        }
+
+        .compass-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+
+        .compass-label.north {
+            top: 8px;
+            left: 50%;
+        }
+
+        .compass-label.east {
+            top: 50%;
+            right: 8px;
+        }
+
+        .compass-label.south {
+            bottom: 8px;
+            left: 50%;
+        }
+
+        .compass-label.west {
+            top: 50%;
+            left: 8px;
+        }
+
+        #distance-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e72626;
+            font-size: 1.1em;
+            font-weight: bold;
+            display: none;
+            z-index: 15;
             text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 4px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        #distance-value {
+            font-size: 1.4em;
+            color: #e72626;
+            margin-bottom: 5px;
+        }
+
+        #direction-arrow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        #direction-arrow svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 10px rgba(231, 38, 38, 0.8));
+        }
+
+        /* Animação de pulsação para quando está muito próximo */
+        .proximity-pulse {
+            animation: proximityPulse 1s infinite;
+        }
+
+        @keyframes proximityPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        /* Indicador de zona quente */
+        .hot-zone {
+            border-color: #ff6b00 !important;
+            background: rgba(255, 107, 0, 0.2) !important;
+        }
+
+        .hot-zone #compass-needle {
+            background: linear-gradient(to bottom, #ff6b00 0%, #ffaa44 50%, #ff6b00 100%) !important;
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 480px) {
+            #compass-container {
+                width: 100px;
+                height: 100px;
+                right: 15px;
+            }
+
+            #distance-indicator {
+                right: 15px;
+                padding: 12px;
+                font-size: 1em;
+                min-width: 100px;
+            }
+
+            #distance-value {
+                font-size: 1.2em;
+            }
+
+            #direction-arrow {
+                width: 50px;
+                height: 50px;
+            }
+
+            .compass-label {
+                font-size: 10px;
+            }
         }
 
         #victory-screen h1 {
@@ -413,13 +521,36 @@
             <p>Todos os itens foram encontrados.</p>
         </div>
 
-        <!-- Sistema de Navegação - Bússola -->
+        <!-- Indicadores direcionais -->
         <div id="compass-container" class="ui-element">
-            <div id="compass-background">
+            <div id="compass">
                 <div id="compass-needle"></div>
                 <div id="compass-center"></div>
+                <div id="compass-labels">
+                    <div class="compass-label north">N</div>
+                    <div class="compass-label east">L</div>
+                    <div class="compass-label south">S</div>
+                    <div class="compass-label west">O</div>
+                </div>
             </div>
-            <div id="compass-distance">Calculando...</div>
+        </div>
+
+        <div id="distance-indicator" class="ui-element">
+            <div id="distance-value">---</div>
+            <div>metros</div>
+        </div>
+
+        <div id="direction-arrow" class="ui-element">
+            <svg viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#e72626;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ff4444;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <polygon points="50,10 70,40 55,40 55,90 45,90 45,40 30,40" fill="url(#arrowGradient)" stroke="#fff"
+                    stroke-width="2" />
+            </svg>
         </div>
     </div>
 
@@ -454,11 +585,17 @@
             let geolocationWatchId = null;
             let currentLocation = null;
             let locationUnlocked = [false, false, false, false, false, false, false]; // Controla se cada localização foi desbloqueada
+            let currentHeading = 0; // Orientação atual do dispositivo
+            let compassContainer = null;
+            let compassNeedle = null;
+            let distanceIndicator = null;
+            let distanceValue = null;
+            let directionArrow = null;
 
             // Coordenadas dos objetos (latitude, longitude)
             const objectLocations = [
                 { lat: -27.639820466982767, lng: -48.66781802715769, name: 'Bicicleta' },
-                { lat: -27.6390501458318, lng: -48.66870286276315, name: 'Demogorgon' },
+                { lat: -27.639820466982765, lng: -48.66781802715767, name: 'Demogorgon' },
                 { lat: -27.639820466982765, lng: -48.66781802715768, name: 'Taco de Baseball' },
                 { lat: -27.639820466982764, lng: -48.66781802715768, name: 'Bússola' },
                 { lat: -27.639820466982763, lng: -48.66781802715768, name: 'Machado' },
@@ -467,7 +604,6 @@
             ];
 
             const PROXIMITY_RADIUS = 10; // 10 metros
-            const COMPASS_HIDE_RADIUS = 9; // 9 metros - bússola desaparece
 
             function simulateLoading() {
                 let progress = 0;
@@ -495,13 +631,6 @@
             const declineButton = document.getElementById('decline-button');
             let dustinAudio = null;
 
-            // Elementos da bússola
-            const compassContainer = document.getElementById('compass-container');
-            const compassNeedle = document.getElementById('compass-needle');
-            const compassDistance = document.getElementById('compass-distance');
-            let currentHeading = 0; // Direção atual do dispositivo
-            let targetBearing = 0; // Direção para o objetivo
-
             function showDustinCall() {
                 loadingScreen.classList.add('hidden');
                 callScreen.classList.remove('hidden');
@@ -512,45 +641,31 @@
             }
 
             function answerCall() {
-                // Atualizar interface primeiro
+                // Criar e tocar o áudio do Dustin
+                dustinAudio = new Audio('assets/audio/dustin-missao-1.mp3');
+
+                // Atualizar interface
                 document.getElementById('call-status').innerText = "Chamada em andamento...";
                 document.getElementById('call-buttons').style.display = 'none';
+
+                // Remover animação
                 answerButton.classList.remove('calling-animation');
 
-                // Criar e configurar o áudio
-                dustinAudio = new Audio('assets/audio/dustin-missao-1.mp3');
-                dustinAudio.preload = 'auto';
-                dustinAudio.volume = 0.8;
+                dustinAudio.play().catch(error => {
+                    console.error('Erro ao reproduzir áudio:', error);
+                    // Fallback: continuar mesmo sem áudio
+                    endCall();
+                });
 
-                // Tentar reproduzir o áudio
-                const playPromise = dustinAudio.play();
+                // Quando o áudio terminar, mostrar botão de iniciar
+                dustinAudio.addEventListener('ended', endCall);
 
-                if (playPromise !== undefined) {
-                    playPromise
-                        .then(() => {
-                            console.log('Áudio do Dustin iniciado com sucesso');
-                            // Quando o áudio terminar, mostrar botão de iniciar
-                            dustinAudio.addEventListener('ended', endCall);
-                        })
-                        .catch(error => {
-                            console.error('Erro ao reproduzir áudio:', error);
-                            // Mostrar mensagem de erro e continuar
-                            document.getElementById('call-status').innerText = "Áudio não disponível - continuando...";
-                            setTimeout(endCall, 2000);
-                        });
-                } else {
-                    // Navegador muito antigo
-                    console.warn('Play() não retorna Promise');
-                    dustinAudio.addEventListener('ended', endCall);
-                }
-
-                // Fallback: se o áudio não carregar ou for muito longo, continuar após 15 segundos
+                // Fallback: se o áudio não carregar, continuar após 10 segundos
                 setTimeout(() => {
-                    if (dustinAudio && !dustinAudio.ended && !dustinAudio.paused) {
-                        console.log('Timeout do áudio - finalizando chamada');
+                    if (dustinAudio && !dustinAudio.ended) {
                         endCall();
                     }
-                }, 15000);
+                }, 10000);
             }
 
             function declineCall() {
@@ -562,7 +677,6 @@
                 // Parar áudio se estiver tocando
                 if (dustinAudio) {
                     dustinAudio.pause();
-                    dustinAudio.currentTime = 0;
                     dustinAudio = null;
                 }
 
@@ -573,117 +687,38 @@
                 // Mostrar botão de entrar
                 loadingInfo.innerText = "Pronto para iniciar!";
                 enterButton.style.display = 'block';
-
-                // Adicionar botão de teste de áudio (opcional)
-                addAudioTestButton();
             }
 
-            function addAudioTestButton() {
-                // Verificar se já existe
-                if (document.getElementById('audio-test-btn')) return;
-
-                const audioTestBtn = document.createElement('button');
-                audioTestBtn.id = 'audio-test-btn';
-                audioTestBtn.innerText = '🔊 Testar Áudio';
-                audioTestBtn.style.cssText = `
-                    margin: 10px;
-                    padding: 10px 20px;
-                    background-color: #333;
-                    color: white;
-                    border: 1px solid #e72626;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 0.9em;
-                `;
-
-                audioTestBtn.addEventListener('click', () => {
-                    const testAudio = new Audio('assets/audio/dustin-missao-1.mp3');
-                    testAudio.volume = 0.5;
-                    testAudio.play().then(() => {
-                        audioTestBtn.innerText = '🔊 Áudio OK!';
-                        setTimeout(() => {
-                            audioTestBtn.innerText = '🔊 Testar Áudio';
-                        }, 2000);
-                    }).catch(error => {
-                        console.error('Erro no teste de áudio:', error);
-                        audioTestBtn.innerText = '❌ Erro no áudio';
-                    });
-                });
-
-                loadingScreen.appendChild(audioTestBtn);
-            }
-
-            // Verificar compatibilidade antes de iniciar
-            checkCompatibility();
             simulateLoading();
-
-            function checkCompatibility() {
-                console.log('Verificando compatibilidade...');
-                console.log('Navigator.xr:', !!navigator.xr);
-                console.log('WebXR disponível:', 'xr' in navigator);
-                console.log('User Agent:', navigator.userAgent);
-
-                // Verificar se é um navegador compatível
-                const isChrome = /Chrome/.test(navigator.userAgent);
-                const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-                const isAndroid = /Android/.test(navigator.userAgent);
-                const isiOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-
-                console.log('Chrome:', isChrome, 'Safari:', isSafari, 'Android:', isAndroid, 'iOS:', isiOS);
-
-                if (!navigator.xr && !isChrome && !isSafari) {
-                    console.warn('Navegador pode não ser compatível com WebXR');
-                }
-            }
 
             enterButton.addEventListener('click', async () => {
                 try {
-                    loadingInfo.innerText = "Solicitando permissões da câmera...";
-
-                    // Verificar se WebXR é suportado
-                    if (!navigator.xr) {
-                        throw new Error('WebXR não suportado');
-                    }
-
-                    // Verificar se AR é suportado
-                    const isARSupported = await navigator.xr.isSessionSupported('immersive-ar');
-                    if (!isARSupported) {
-                        throw new Error('AR não suportado neste dispositivo');
-                    }
-
-                    loadingInfo.innerText = "Iniciando AR...";
                     await sceneEl.enterAR();
-
+                    loadingInfo.innerText = "Iniciando AR...";
                 } catch (e) {
-                    console.error('Erro ao iniciar AR:', e);
-                    loadingInfo.innerText = "AR não suportado. Use Chrome no Android ou Safari no iOS.";
-
-                    // Mostrar botão para tentar novamente após 3 segundos
-                    setTimeout(() => {
-                        enterButton.style.display = 'block';
-                        loadingInfo.innerText = "Tente novamente ou use um dispositivo compatível";
-                    }, 3000);
+                    loadingInfo.innerText = "AR não suportado. Use um navegador e celular compatíveis.";
+                    console.error(e);
                 }
             });
 
-            // Escutar tanto enter-vr quanto enter-ar para compatibilidade
-            sceneEl.addEventListener('enter-vr', handleARStart);
-            sceneEl.addEventListener('enter-ar', handleARStart);
-
-            function handleARStart() {
-                console.log('AR iniciado com sucesso');
+            sceneEl.addEventListener('enter-vr', () => {
                 loadingScreen.classList.add('hidden');
                 gameUi.style.display = 'block';
                 initGame();
-            }
+            });
 
             function initGame() {
-                console.log('Iniciando jogo...');
-
                 instructionText = document.createElement('p');
                 instructionText.id = 'instruction-text';
                 instructionText.innerText = "Iniciando geolocalização...";
                 gameUi.appendChild(instructionText);
+
+                // Inicializar elementos dos indicadores direcionais
+                compassContainer = document.getElementById('compass-container');
+                compassNeedle = document.getElementById('compass-needle');
+                distanceIndicator = document.getElementById('distance-indicator');
+                distanceValue = document.getElementById('distance-value');
+                directionArrow = document.getElementById('direction-arrow');
 
                 // Configurar sistema de toque para coleta
                 setupTouchInteraction();
@@ -691,59 +726,15 @@
                 // Inicializar geolocalização
                 setupGeolocation();
 
-                // Inicializar bússola (com verificação de permissão)
-                initCompassWithPermission();
+                // Inicializar orientação do dispositivo
+                setupDeviceOrientation();
 
-                // Aguardar um pouco para garantir que a sessão XR esteja ativa
-                setTimeout(() => {
-                    const renderer = sceneEl.renderer;
-                    const xrSession = renderer.xr.getSession();
+                // Inicializar hit-test source quando a sessão XR estiver ativa
+                const renderer = sceneEl.renderer;
+                const xrSession = renderer.xr.getSession();
 
-                    console.log('Sessão XR:', xrSession);
-
-                    if (xrSession) {
-                        setupHitTest(xrSession, renderer);
-                    } else {
-                        console.warn('Sessão XR não encontrada, tentando novamente...');
-                        // Tentar novamente após mais tempo
-                        setTimeout(() => {
-                            const retrySession = renderer.xr.getSession();
-                            if (retrySession) {
-                                setupHitTest(retrySession, renderer);
-                            } else {
-                                console.error('Não foi possível obter sessão XR');
-                            }
-                        }, 2000);
-                    }
-                }, 1000);
-            }
-
-            async function initCompassWithPermission() {
-                // Verificar se precisa de permissão (iOS 13+)
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    // Criar botão para solicitar permissão
-                    const permissionButton = document.createElement('button');
-                    permissionButton.innerText = 'Ativar Bússola';
-                    permissionButton.style.cssText = `
-                        margin: 10px 0;
-                        padding: 10px 20px;
-                        background-color: #e72626;
-                        color: white;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        font-size: 1em;
-                    `;
-
-                    permissionButton.addEventListener('click', async () => {
-                        await setupCompass();
-                        permissionButton.remove();
-                    });
-
-                    gameUi.appendChild(permissionButton);
-                } else {
-                    // Dispositivos que não precisam de permissão
-                    await setupCompass();
+                if (xrSession) {
+                    setupHitTest(xrSession, renderer);
                 }
             }
 
@@ -808,6 +799,107 @@
                 }
             }
 
+            function calculateBearing(lat1, lng1, lat2, lng2) {
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const lat1Rad = lat1 * Math.PI / 180;
+                const lat2Rad = lat2 * Math.PI / 180;
+
+                const y = Math.sin(dLng) * Math.cos(lat2Rad);
+                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+                    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+
+                let bearing = Math.atan2(y, x) * 180 / Math.PI;
+                return (bearing + 360) % 360; // Normalizar para 0-360
+            }
+
+            function setupDeviceOrientation() {
+                // Verificar se a API de orientação está disponível
+                if (window.DeviceOrientationEvent) {
+                    // Para iOS 13+, precisamos pedir permissão
+                    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission()
+                            .then(response => {
+                                if (response === 'granted') {
+                                    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                                    window.addEventListener('deviceorientation', handleOrientation, true);
+                                }
+                            })
+                            .catch(console.error);
+                    } else {
+                        // Para outros navegadores
+                        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                        window.addEventListener('deviceorientation', handleOrientation, true);
+                    }
+                }
+            }
+
+            function handleOrientation(event) {
+                // Usar compass heading se disponível, senão usar alpha
+                currentHeading = event.webkitCompassHeading || event.alpha || 0;
+
+                // Normalizar para 0-360
+                if (currentHeading < 0) {
+                    currentHeading += 360;
+                }
+            }
+
+            function updateDirectionalIndicators(distance, targetBearing, objectName) {
+                if (!compassContainer || !distanceIndicator) return;
+
+                // Atualizar distância
+                const distanceText = distance > 1000 ?
+                    (distance / 1000).toFixed(1) :
+                    Math.round(distance);
+                const unit = distance > 1000 ? 'km' : 'm';
+
+                distanceValue.textContent = distanceText;
+                distanceValue.nextElementSibling.textContent = unit;
+
+                // Calcular direção relativa (diferença entre direção do objeto e orientação atual)
+                let relativeBearing = targetBearing - currentHeading;
+                if (relativeBearing < 0) relativeBearing += 360;
+                if (relativeBearing > 360) relativeBearing -= 360;
+
+                // Atualizar agulha da bússola
+                if (compassNeedle) {
+                    compassNeedle.style.transform = `translate(-50%, -100%) rotate(${relativeBearing}deg)`;
+                }
+
+                // Atualizar seta direcional
+                if (directionArrow) {
+                    directionArrow.style.transform = `translate(-50%, -50%) rotate(${relativeBearing}deg)`;
+                }
+
+                // Aplicar efeitos visuais baseados na distância
+                applyProximityEffects(distance);
+            }
+
+            function applyProximityEffects(distance) {
+                // Remover classes anteriores
+                compassContainer.classList.remove('hot-zone');
+                directionArrow.classList.remove('proximity-pulse');
+
+                if (distance <= PROXIMITY_RADIUS * 3) { // Zona quente (30m)
+                    compassContainer.classList.add('hot-zone');
+                }
+
+                if (distance <= PROXIMITY_RADIUS * 1.5) { // Muito próximo (15m)
+                    directionArrow.classList.add('proximity-pulse');
+                }
+            }
+
+            function showDirectionalIndicators() {
+                if (compassContainer) compassContainer.style.display = 'block';
+                if (distanceIndicator) distanceIndicator.style.display = 'block';
+                if (directionArrow) directionArrow.style.display = 'block';
+            }
+
+            function hideDirectionalIndicators() {
+                if (compassContainer) compassContainer.style.display = 'none';
+                if (distanceIndicator) distanceIndicator.style.display = 'none';
+                if (directionArrow) directionArrow.style.display = 'none';
+            }
+
             function checkProximityToLocations() {
                 if (!currentLocation) return;
 
@@ -821,14 +913,14 @@
 
                 console.log(`Distância para ${currentObjectLocation.name}: ${distance.toFixed(1)}m`);
 
-                // Calcular direção para o objetivo
-                targetBearing = calculateBearing(
+                // Calcular direção para o objeto
+                const bearing = calculateBearing(
                     currentLocation.lat, currentLocation.lng,
                     currentObjectLocation.lat, currentObjectLocation.lng
                 );
 
-                // Atualizar bússola
-                updateCompass(distance);
+                // Atualizar indicadores direcionais
+                updateDirectionalIndicators(distance, bearing, currentObjectLocation.name);
 
                 // Atualizar indicador de localização
                 const locationStatus = document.getElementById('location-status');
@@ -838,8 +930,8 @@
 
                 if (locationUnlocked[currentObjectIndex]) {
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
-                    // Esconder bússola quando objeto está desbloqueado
-                    hideCompass();
+                    // Esconder indicadores quando desbloqueado
+                    hideDirectionalIndicators();
                 } else if (distance <= PROXIMITY_RADIUS) {
                     // Jogador chegou perto o suficiente!
                     locationUnlocked[currentObjectIndex] = true;
@@ -852,8 +944,8 @@
                     instructionText.innerText = `Você chegou perto de ${currentObjectLocation.name}! Procure uma superfície para encontrá-lo.`;
                     locationStatus.innerHTML = `✅ ${currentObjectLocation.name} desbloqueado!`;
 
-                    // Esconder bússola
-                    hideCompass();
+                    // Esconder indicadores
+                    hideDirectionalIndicators();
 
                     console.log(`Localização desbloqueada: ${currentObjectLocation.name}`);
                 } else {
@@ -861,10 +953,8 @@
                     instructionText.innerText = `Vá até a localização de ${currentObjectLocation.name}`;
                     locationStatus.innerHTML = `🎯 ${currentObjectLocation.name}: ${distanceText}`;
 
-                    // Mostrar bússola se não estiver muito perto
-                    if (distance > COMPASS_HIDE_RADIUS) {
-                        showCompass();
-                    }
+                    // Mostrar indicadores direcionais
+                    showDirectionalIndicators();
                 }
             }
 
@@ -1099,29 +1189,11 @@
                     // Resetar flags para o próximo objeto
                     canPlace = false;
 
-                    // Mostrar bússola para o próximo objeto se houver localização atual
-                    if (currentLocation) {
-                        const nextObjectLocation = objectLocations[currentObjectIndex];
-                        if (nextObjectLocation) {
-                            const distance = calculateDistance(
-                                currentLocation.lat, currentLocation.lng,
-                                nextObjectLocation.lat, nextObjectLocation.lng
-                            );
-
-                            if (distance > COMPASS_HIDE_RADIUS) {
-                                targetBearing = calculateBearing(
-                                    currentLocation.lat, currentLocation.lng,
-                                    nextObjectLocation.lat, nextObjectLocation.lng
-                                );
-                                updateCompass(distance);
-                                showCompass();
-                            }
-                        }
-                    }
-
-                    // Verificar se já está perto da próxima localização
+                    // Verificar se já está perto da próxima localização e mostrar indicadores
                     setTimeout(() => {
-                        checkProximityToLocations();
+                        if (currentLocation) {
+                            checkProximityToLocations();
+                        }
                     }, 1500);
                 } else {
                     // Todos os objetos foram coletados
@@ -1130,8 +1202,8 @@
             }
 
             function showVictoryScreen() {
-                // Esconder bússola
-                hideCompass();
+                // Esconder indicadores direcionais
+                hideDirectionalIndicators();
 
                 // Parar monitoramento de geolocalização
                 if (geolocationWatchId) {
@@ -1140,152 +1212,6 @@
 
                 gameUi.style.display = 'none';
                 victoryScreen.classList.remove('hidden');
-            }
-
-            // ===== SISTEMA DE NAVEGAÇÃO - BÚSSOLA =====
-            let lastOrientationUpdate = 0;
-            let smoothedHeading = 0;
-            let orientationPermissionGranted = false;
-
-            async function setupCompass() {
-                // Solicitar permissão para orientação no iOS 13+
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    try {
-                        const permission = await DeviceOrientationEvent.requestPermission();
-                        orientationPermissionGranted = permission === 'granted';
-                    } catch (error) {
-                        console.warn('Erro ao solicitar permissão de orientação:', error);
-                        orientationPermissionGranted = false;
-                    }
-                } else {
-                    orientationPermissionGranted = true;
-                }
-
-                if (orientationPermissionGranted && window.DeviceOrientationEvent) {
-                    // Priorizar deviceorientationabsolute se disponível
-                    if ('ondeviceorientationabsolute' in window) {
-                        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-                    } else {
-                        window.addEventListener('deviceorientation', handleOrientation, true);
-                    }
-                } else {
-                    console.warn('Orientação do dispositivo não suportada ou sem permissão');
-                }
-            }
-
-            function handleOrientation(event) {
-                const now = Date.now();
-
-                // Throttle para evitar muitas atualizações (máximo 10 FPS)
-                if (now - lastOrientationUpdate < 100) return;
-                lastOrientationUpdate = now;
-
-                // Obter direção do dispositivo
-                let alpha = event.alpha;
-
-                // Tratar diferentes implementações de orientação
-                if (alpha === null || alpha === undefined) {
-                    alpha = event.webkitCompassHeading || 0;
-                }
-
-                // Converter webkitCompassHeading (iOS) para padrão
-                if (event.webkitCompassHeading !== undefined) {
-                    alpha = 360 - alpha; // iOS usa direção oposta
-                }
-
-                if (alpha !== null && alpha !== undefined) {
-                    // Aplicar suavização para reduzir oscilações
-                    smoothedHeading = smoothHeading(alpha, smoothedHeading);
-                    currentHeading = smoothedHeading;
-                    updateCompassNeedle();
-                }
-            }
-
-            function smoothHeading(newHeading, oldHeading) {
-                // Normalizar ângulos para 0-360
-                newHeading = ((newHeading % 360) + 360) % 360;
-                oldHeading = ((oldHeading % 360) + 360) % 360;
-
-                // Calcular diferença considerando a natureza circular dos ângulos
-                let diff = newHeading - oldHeading;
-                if (diff > 180) diff -= 360;
-                if (diff < -180) diff += 360;
-
-                // Aplicar suavização (fator de 0.1 = mais suave, 0.9 = mais responsivo)
-                const smoothingFactor = 0.3;
-                let smoothed = oldHeading + (diff * smoothingFactor);
-
-                // Normalizar resultado
-                return ((smoothed % 360) + 360) % 360;
-            }
-
-            function calculateBearing(lat1, lng1, lat2, lng2) {
-                // Converter para radianos
-                const lat1Rad = lat1 * Math.PI / 180;
-                const lat2Rad = lat2 * Math.PI / 180;
-                const dLng = (lng2 - lng1) * Math.PI / 180;
-
-                // Calcular bearing usando fórmula mais precisa
-                const y = Math.sin(dLng) * Math.cos(lat2Rad);
-                const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-                    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
-
-                let bearing = Math.atan2(y, x) * 180 / Math.PI;
-
-                // Normalizar para 0-360 graus
-                bearing = ((bearing % 360) + 360) % 360;
-
-                return bearing;
-            }
-
-            function updateCompass(distance) {
-                // Atualizar distância
-                const distanceText = distance > 1000 ?
-                    `${(distance / 1000).toFixed(1)}km` :
-                    `${Math.round(distance)}m`;
-                compassDistance.textContent = distanceText;
-
-                // Atualizar direção da agulha
-                updateCompassNeedle();
-            }
-
-            function updateCompassNeedle() {
-                // Calcular diferença entre direção do objetivo e direção atual do dispositivo
-                let needleRotation = targetBearing - currentHeading;
-
-                // Normalizar rotação para o caminho mais curto
-                while (needleRotation > 180) needleRotation -= 360;
-                while (needleRotation < -180) needleRotation += 360;
-
-                // Aplicar rotação à agulha com transição suave
-                compassNeedle.style.transform = `translate(-50%, -100%) rotate(${needleRotation}deg)`;
-
-                // Debug (remover em produção)
-                console.log(`Target: ${targetBearing.toFixed(1)}°, Current: ${currentHeading.toFixed(1)}°, Needle: ${needleRotation.toFixed(1)}°`);
-            }
-
-            function showCompass() {
-                compassContainer.style.display = 'block';
-            }
-
-            function hideCompass() {
-                compassContainer.style.display = 'none';
-            }
-
-            // Função para calibrar a bússola (útil em caso de problemas)
-            function calibrateCompass() {
-                // Reset da suavização
-                smoothedHeading = currentHeading;
-
-                // Mostrar dica de calibração
-                if (instructionText) {
-                    const originalText = instructionText.innerText;
-                    instructionText.innerText = "Mova o dispositivo em formato de 8 para calibrar a bússola";
-
-                    setTimeout(() => {
-                        instructionText.innerText = originalText;
-                    }, 3000);
-                }
             }
         });
     </script>
